@@ -67,6 +67,14 @@ export interface Accesser {
     */
     followedBy(userId: string): any
 
+    /**
+     * Calls back with the display name for the player (if known - otherwise null.)
+     * 
+     * @param userId the ID of the user to get the latest known display name for 
+     * @param cb the result callback
+     */
+    getPlayerDisplayName(userId: string, cb: (err: any, cb: String) => void) : any
+
     // TODO: functions for https://github.com/Happy0/ssb-ooo-about
 
 }
