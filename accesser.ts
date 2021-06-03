@@ -75,6 +75,14 @@ export interface Accesser {
      */
     getPlayerDisplayName(userId: string, cb: (err: any, cb: String) => void) : any
 
-    // TODO: functions for https://github.com/Happy0/ssb-ooo-about
-
+    /**
+     * Returns a list of message IDs for the latest known 'about 'messages for the given
+     * user (containing a display name, picture, etc, for example.) Used to populate
+     * invite message with keys that can be used with ssb-ooo to get information about
+     * the user.
+     * 
+     * @param userId the user to get the latest about messages for
+     * @param cb the result callback
+     */
+    getLatestMsgIds(userId: string, cb: (err: string, result: Array<String>) => void) : any 
 }
