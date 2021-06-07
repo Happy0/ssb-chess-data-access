@@ -2,10 +2,10 @@
   "name": "ssb-chess-data-access",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/app.js",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
-    "start": "tsc && node dist/app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "typescript": "tsc"
   },
   "repository": {
     "type": "git",
