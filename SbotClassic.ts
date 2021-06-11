@@ -1,5 +1,10 @@
 import {Accesser} from './accesser'
 
+/**
+ * A typical(ish) ssb-server, as in the one ran by Patchwork for example.
+ * 
+ * Assumes the `ssb-backlinks` plugin is installed
+ */
 export class SbotClassic implements Accesser {
     sbot: any;
 
@@ -8,13 +13,13 @@ export class SbotClassic implements Accesser {
     }
     
     get(messageId: String, cb: (err: any, result: any) => any): void {
-        throw new Error('Method not implemented.');
+        this.sbot.get(messageId, cb);
     }
     publishPublic(payload: any, cb: (err: any) => any): void {
-        throw new Error('Method not implemented.');
+        this.sbot.publish(payload, cb);
     }
     publishPrivate(payload: any, participants: String[], cb: (err: any) => any): void {
-        throw new Error('Method not implemented.');
+        this.sbot.private.publish(payload, participants, cb);
     }
     linksToMessage(messageId: String, live: Boolean) {
         throw new Error('Method not implemented.');
