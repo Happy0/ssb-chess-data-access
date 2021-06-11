@@ -17,4 +17,6 @@ Client( (err, ssbClient) => {
 
     //pull(sbot.linksToMessage('%LK5VCri5eXat1f04k8jNhB/rg5hUylNz9dGSpTdZL7A=.sha256', true), pull.drain(msg => console.log(msg)));
 
+    //pull(sbot.messagesOfType("chess_invite", true), pull.drain(msg => console.log(msg)))
+
 });

@@ -34,7 +34,7 @@ export class SbotClassic implements Accesser {
         return source;
     }
     messagesOfType(messageType: String, live: Boolean) {
-        throw new Error('Method not implemented.');
+        return this.sbot.messagesByType({type: messageType, live: live});
     }
     logStream(live: Boolean, since?: number) {
         throw new Error('Method not implemented.');
