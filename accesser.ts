@@ -34,26 +34,21 @@ export interface Accesser {
     */
     linksToMessage(messageId: String, live: Boolean): any
 
-    /*
-    * Returns a pull stream source (https://pull-stream.github.io/) of all the messages which
-    * have a 'type' content field of the supplied type.
-    * 
-    * @param messageType the type of message
-    * @param live whether this pull-stream terminates when the currently stored messages have been completely,
-    * or whether it waits infinitely and emits messages arriving live.
-    * 
-    * Should emit a message with contents {sync: true} before going live
-    */
-    messagesOfType(messageType: String, live: Boolean): any
-
     /**
-     * Plays all messages in database by stored time, beginning since the 'since' timestamp.
+     * A stream of any messages related to a game the player is in
      * 
-     * @param live whether this pull-stream terminates when the currently stored messages have been completely,
-     * or whether it waits infinitely and emits messages arriving live.
-     * @param since Only returns any messages which have a timestamp greater than the supplied parameter.1
+     * @param playerId the ID of the player
+     * @param opts since (timestamp), live (boolean)
      */
-    logStream(live: Boolean, since?: number): any
+    chessMessagesForPlayerGames(playerId, opts: Object): any
+    
+    /**
+     * A stream of any messages related to a game the player is not in
+     * 
+     * @param playerId the ID of the player
+     * @param opts since (timestamp), live (boolean)
+     */
+    chessMessagesForOtherPlayersGames(playerId, opts: Object): any
 
     /**
      * Returns a pull-stream of all the user IDs of the users the given user is following.

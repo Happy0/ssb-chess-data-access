@@ -36,12 +36,7 @@ export class SbotClassic implements Accesser {
     messagesOfType(messageType: String, live: Boolean) {
         return this.sbot.messagesByType({type: messageType, live: live});
     }
-    logStream(live: Boolean, since?: number) {
-        return this.sbot.createLogStream({
-            live: live,
-            gt: since
-        });
-    }
+    
     follows(userId: String) {
         const follows = this.sbot.links({
             source: userId,
@@ -81,6 +76,13 @@ export class SbotClassic implements Accesser {
         throw new Error('Method not implemented.');
     }
     getLatestMsgIds(userId: string, cb: (err: string, result: String[]) => void) {
+        throw new Error('Method not implemented.');
+    }
+
+    chessMessagesForPlayerGames(playerId: any, opts: Object) {
+        throw new Error('Method not implemented.');
+    }
+    chessMessagesForOtherPlayersGames(playerId: any, opts: Object) {
         throw new Error('Method not implemented.');
     }
 
