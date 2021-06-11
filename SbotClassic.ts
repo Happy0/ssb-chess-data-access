@@ -37,13 +37,45 @@ export class SbotClassic implements Accesser {
         return this.sbot.messagesByType({type: messageType, live: live});
     }
     logStream(live: Boolean, since?: number) {
-        throw new Error('Method not implemented.');
+        return this.sbot.createLogStream({
+            live: live,
+            gt: since
+        });
     }
     follows(userId: String) {
-        throw new Error('Method not implemented.');
+        const follows = this.sbot.links({
+            source: userId,
+            rel: 'contact',
+            values: true,
+            reverse: true,
+        });
+
+        // Ordering in reverse and filtering for unique means only
+        // the latest state (follow / unfollow is taken into account)
+        return pull(
+            follows,
+            pull.unique('dest'),
+            pull.filter(msg => msg.value.content.following !== false && msg.value.content.blocking !== true),
+            pull.map(msg => msg.dest)
+        );
     }
     followedBy(userId: string) {
-        throw new Error('Method not implemented.');
+        const followsMe = this.sbot.links({
+            dest: userId,
+            rel: 'contact',
+            values: true,
+            reverse: true,
+          });
+
+
+        // Ordering in reverse and filtering for unique means only
+        // the latest state (follow / unfollow is taken into account)
+        return pull(
+            followsMe,
+            pull.unique('dest'),
+            pull.filter(msg => msg.value.content.following !== false && msg.value.content.blocking !== true),
+            pull.map(msg => msg.source)
+        );
     }
     getPlayerDisplayName(userId: string, cb: (err: any, cb: String) => void) {
         throw new Error('Method not implemented.');

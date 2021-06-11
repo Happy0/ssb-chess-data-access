@@ -19,4 +19,7 @@ Client( (err, ssbClient) => {
 
     //pull(sbot.messagesOfType("chess_invite", true), pull.drain(msg => console.log(msg)))
 
+   // pull(sbot.logStream(true, 1623441679136), pull.drain(msg => console.log(msg)))
+
+   pull(sbot.follows("@RJ09Kfs3neEZPrbpbWVDxkN92x9moe3aPusOMOc4S2I=.ed25519"), pull.drain(msg => console.log(msg)))
 });
