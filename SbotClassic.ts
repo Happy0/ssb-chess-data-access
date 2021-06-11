@@ -47,7 +47,7 @@ export class SbotClassic implements Accesser {
             source: userId,
             rel: 'contact',
             values: true,
-            reverse: true,
+            reverse: true
         });
 
         // Ordering in reverse and filtering for unique means only
@@ -64,7 +64,7 @@ export class SbotClassic implements Accesser {
             dest: userId,
             rel: 'contact',
             values: true,
-            reverse: true,
+            reverse: true
           });
 
 
@@ -72,8 +72,8 @@ export class SbotClassic implements Accesser {
         // the latest state (follow / unfollow is taken into account)
         return pull(
             followsMe,
-            pull.unique('dest'),
-            pull.filter(msg => msg.value.content.following !== false && msg.value.content.blocking !== true),
+            pull.unique('source'),
+            pull.filter(msg => msg.value.content.following !== false),
             pull.map(msg => msg.source)
         );
     }
