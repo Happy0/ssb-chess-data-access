@@ -1,9 +1,10 @@
 import {Accesser} from './accesser'
+import pull from 'pull-stream'
 
 /**
  * A typical(ish) ssb-server, as in the one ran by Patchwork for example.
  * 
- * Assumes the `ssb-backlinks` plugin is installed
+ * Assumes the `ssb-backlinks` and 'ssb-private' plugins are installed
  */
 export class SbotClassic implements Accesser {
     sbot: any;
@@ -22,7 +23,15 @@ export class SbotClassic implements Accesser {
         this.sbot.private.publish(payload, participants, cb);
     }
     linksToMessage(messageId: String, live: Boolean) {
-        throw new Error('Method not implemented.');
+        const source =  pull(
+            this.sbot.backlinks.read({
+              query: [{$filter: {dest: messageId}}], // some message hash
+              index: 'DTA',
+              live: live
+            })
+        );
+        
+        return source;
     }
     messagesOfType(messageType: String, live: Boolean) {
         throw new Error('Method not implemented.');
