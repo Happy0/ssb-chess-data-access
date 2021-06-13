@@ -13,29 +13,43 @@ export class SbotClassic implements Accesser {
         this.sbot = sbot
     }
     
-    get(messageId: String, cb: (err: any, result: any) => any): void {
-        this.sbot.get(messageId, cb);
+    publishPublicChessMessage(payload: any, cb: (err: any) => any): void {
+        throw new Error('Method not implemented.');
     }
-    publishPublic(payload: any, cb: (err: any) => any): void {
-        this.sbot.publish(payload, cb);
+    publishPrivateChessMessage(payload: any, participants: String[], cb: (err: any) => any): void {
+        throw new Error('Method not implemented.');
     }
-    publishPrivate(payload: any, participants: String[], cb: (err: any) => any): void {
-        this.sbot.private.publish(payload, participants, cb);
+    getInviteMessage(game: String, cb: (err: any, result: any) => any): void {
+        throw new Error('Method not implemented.');
     }
-    linksToMessage(messageId: String, live: Boolean) {
-        const source =  pull(
-            this.sbot.backlinks.read({
-              query: [{$filter: {dest: messageId}}], // some message hash
-              index: 'DTA',
-              live: live
-            })
-        );
+    allGameMessages(gameId: String, live: Boolean) {
+        throw new Error('Method not implemented.');
+    }
+    chessInviteMessages(live: boolean) {
+        throw new Error('Method not implemented.');
+    }
+    chessInviteAcceptMessages(live: boolean) {
+        throw new Error('Method not implemented.');
+    }
+    chessEndMessages(live: boolean) {
+        throw new Error('Method not implemented.');
+    }
+    getLatestAboutMsgIds(userId: string, cb: (err: string, result: String[]) => void) {
+        throw new Error('Method not implemented.');
+    }
+
+    // linksToMessage(messageId: String, live: Boolean) {
+    //     const source =  pull(
+    //         this.sbot.backlinks.read({
+    //           query: [{$filter: {dest: messageId}}], // some message hash
+    //           index: 'DTA',
+    //           live: live
+    //         })
+    //     );
         
-        return source;
-    }
-    messagesOfType(messageType: String, live: Boolean) {
-        return this.sbot.messagesByType({type: messageType, live: live});
-    }
+    //     return source;
+    // }
+
     
     follows(userId: String) {
         const follows = this.sbot.links({

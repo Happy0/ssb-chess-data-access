@@ -5,50 +5,71 @@
  */
 export interface Accesser {
 
+    /*
+    * Publishes a message publicly. Message should be part of the ssb-chess protocol.
+    */
+    publishPublicChessMessage(payload: any, cb: (err: any) => any): void
+
+    /*
+    * Publishes a message privately to the given list of participants. 
+    * Message should be part of the ssb-chess protocol.
+    */
+    publishPrivateChessMessage(payload: any, participants: Array<String>, cb: (err: any) => any): void
+
     /**
-     * Gets a given message by ID
+     * Gets the original chess game invite message by game ID
      * 
-     * @param messageId The message ID of the message
+     * @param messageId The game ID
      */
-    get(messageId: String, cb: (err: any, result: any) => any): void
+    getInviteMessage(game: String, cb: (err: any, result: any) => any): void
 
     /*
-    * Publishes a message publically
-    */
-    publishPublic(payload: any, cb: (err: any) => any): void
-
-    /*
-    * Publishes a message privately to the given list of participants
-    */
-    publishPrivate(payload: any, participants: Array<String>, cb: (err: any) => any): void
-
-    /*
-    * Returns a pull stream source (https://pull-stream.github.io/) of all the messages which
-    * have a 'root' field pointing back to the given message ID.
+    * Returns a pull stream source of all the ssb-chess messages for the given game ID
     * 
-    * @param messageId the message ID of the message
+    * @param messageId the ID of the game
     * @param live whether this pull-stream terminates when the currently stored messages have been completely,
     * or whether it waits infinitely and emits messages arriving live.
     * 
     * Should emit a message with contents {sync: true} before going live
     */
-    linksToMessage(messageId: String, live: Boolean): any
+    allGameMessages(gameId: String, live: Boolean): any
 
     /**
      * A stream of any messages related to a game the player is in
      * 
      * @param playerId the ID of the player
-     * @param opts since (timestamp), live (boolean)
+     * @param opts since (timestamp), live (boolean), messageTypes
      */
-    chessMessagesForPlayerGames(playerId, opts: Object): any
+    chessMessagesForPlayerGames(playerId: string, opts: Object): any
     
     /**
      * A stream of any messages related to a game the player is not in
      * 
      * @param playerId the ID of the player
-     * @param opts since (timestamp), live (boolean)
+     * @param opts since (timestamp), live (boolean), messageTypes
      */
-    chessMessagesForOtherPlayersGames(playerId, opts: Object): any
+    chessMessagesForOtherPlayersGames(playerId: string, opts: Object): any
+
+    /**
+     * A pull-stream source of all messages of type 'chess_invite'
+     * 
+     * @param live whether the stream should continue and emit newly arriving messages
+     */
+    chessInviteMessages(live: boolean): any
+
+    /**
+     * A pull-stream source of all messages of type 'chess_invite_accept'
+     * 
+     * @param live whether the stream should continue and emit newly arriving messages
+     */
+    chessInviteAcceptMessages(live: boolean): any
+
+    /**
+     * A pull-stream source of all messages of type 'chess_game_end'
+     *
+     * @param live whether the stream should continue and emit newly arriving messages
+     */
+    chessEndMessages(live: boolean): any
 
     /**
      * Returns a pull-stream of all the user IDs of the users the given user is following.
@@ -79,5 +100,5 @@ export interface Accesser {
      * @param userId the user to get the latest about messages for
      * @param cb the result callback
      */
-    getLatestMsgIds(userId: string, cb: (err: string, result: Array<String>) => void) : any 
+    getLatestAboutMsgIds(userId: string, cb: (err: string, result: Array<String>) => void) : any 
 }
