@@ -21,5 +21,28 @@ Client( (err, ssbClient) => {
 
    // pull(sbot.logStream(true, 1623441679136), pull.drain(msg => console.log(msg)))
 
-   pull(sbot.followedBy("@RJ09Kfs3neEZPrbpbWVDxkN92x9moe3aPusOMOc4S2I=.ed25519"), pull.drain(msg => console.log(msg)))
+   // pull(sbot.followedBy("@RJ09Kfs3neEZPrbpbWVDxkN92x9moe3aPusOMOc4S2I=.ed25519"), pull.drain(msg => console.log(msg)))
+
+    const query = [
+        {
+        "$filter": {
+          value: {
+            content: {
+              type: {
+                  "$in": ["chess_invite", "chess_invite_accept", "chess_end"]
+              }
+            }
+          }
+        }
+      }
+    ]
+
+    pull(ssbClient.query.read({
+        query: query
+    }),
+    pull.map(e => e.timestamp),
+        pull.drain(e => console.log(e))
+    )
+
+
 });

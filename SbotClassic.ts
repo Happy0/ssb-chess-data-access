@@ -12,15 +12,35 @@ export class SbotClassic implements Accesser {
     constructor(sbot: any) {
         this.sbot = sbot
     }
-    
+
+    orderedChessStatusMessages() {
+        const query = [
+            {
+            "$filter": {
+                value: {
+                    content: {
+                    type: {
+                        "$in": ["chess_invite", "chess_invite_accept", "chess_end"]
+                    }
+                }
+            }
+            }
+            }
+        ]
+
+        return this.sbot.query.read({
+            query: query
+        })
+    }
+
     publishPublicChessMessage(payload: any, cb: (err: any) => any): void {
-        throw new Error('Method not implemented.');
+        return this.sbot.publish(payload, cb);
     }
     publishPrivateChessMessage(payload: any, participants: String[], cb: (err: any) => any): void {
-        throw new Error('Method not implemented.');
+        return this.sbot.private.publish(payload, participants, cb);
     }
-    getInviteMessage(game: String, cb: (err: any, result: any) => any): void {
-        throw new Error('Method not implemented.');
+    getInviteMessage(gameId: String, cb: (err: any, result: any) => any): void {
+        return this.sbot.get(gameId, cb);    
     }
     allGameMessages(gameId: String, live: Boolean) {
         throw new Error('Method not implemented.');
@@ -51,7 +71,7 @@ export class SbotClassic implements Accesser {
     // }
 
     
-    follows(userId: String) {
+    follows(userId: String, live: Boolean) {
         const follows = this.sbot.links({
             source: userId,
             rel: 'contact',
@@ -68,7 +88,7 @@ export class SbotClassic implements Accesser {
             pull.map(msg => msg.dest)
         );
     }
-    followedBy(userId: string) {
+    followedBy(userId: string, live: Boolean) {
         const followsMe = this.sbot.links({
             dest: userId,
             rel: 'contact',

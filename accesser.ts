@@ -35,6 +35,18 @@ export interface Accesser {
     allGameMessages(gameId: String, live: Boolean): any
 
     /**
+     * A pull-stream source of all chess invite status messages (chess_invite, chess_invite_accept, chess_end)
+     * ordered by 'received' timestamp (when the message was stored in the database rather than when it was originally
+     * made.)
+     * 
+     * Note: assumed to be slow
+     * 
+     * Useful for indexing purposes
+     * 
+     */
+     orderedChessStatusMessages(): any
+
+    /**
      * A stream of any messages related to a game the player is in
      * 
      * @param playerId the ID of the player
@@ -73,15 +85,19 @@ export interface Accesser {
 
     /**
      * Returns a pull-stream of all the user IDs of the users the given user is following.
+     * Emits an array of user IDs. Emits live updates if 'live' is true 
      * 
      * @param userId the public key of the user to return a stream for
      */
-    follows(userId: String): any
+    follows(userId: String, live: boolean): any
 
     /*
-    * Returns a pull-stream of all the userIDs that follow the given user ID.
-    */
-    followedBy(userId: string): any
+     * Returns a pull-stream of all the user IDs that follow the given user is following.
+     * Emits an array of user IDs. Emits live updates if 'live' is true
+     * 
+     * @param userId the public key of the user to return a stream for
+     */
+    followedBy(userId: string, boolean): any
 
     /**
      * Calls back with the display name for the player (if known - otherwise null.)
@@ -100,5 +116,6 @@ export interface Accesser {
      * @param userId the user to get the latest about messages for
      * @param cb the result callback
      */
-    getLatestAboutMsgIds(userId: string, cb: (err: string, result: Array<String>) => void) : any 
+    getLatestAboutMsgIds(userId: string, cb: (err: string, result: Array<String>) => void) : any
+    
 }
