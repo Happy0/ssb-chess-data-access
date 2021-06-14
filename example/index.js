@@ -23,26 +23,10 @@ Client( (err, ssbClient) => {
 
    // pull(sbot.followedBy("@RJ09Kfs3neEZPrbpbWVDxkN92x9moe3aPusOMOc4S2I=.ed25519"), pull.drain(msg => console.log(msg)))
 
-    const query = [
-        {
-        "$filter": {
-          value: {
-            content: {
-              type: {
-                  "$in": ["chess_invite", "chess_invite_accept", "chess_end"]
-              }
-            }
-          }
-        }
-      }
-    ]
+    const all = sbot.orderedChessStatusMessages(true, 1623422797214)
 
-    pull(ssbClient.query.read({
-        query: query
-    }),
-    pull.map(e => e.timestamp),
+    pull(all,
         pull.drain(e => console.log(e))
     )
-
 
 });

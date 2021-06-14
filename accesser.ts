@@ -44,7 +44,7 @@ export interface Accesser {
      * Useful for indexing purposes
      * 
      */
-     orderedChessStatusMessages(): any
+     orderedChessStatusMessages(live: boolean, gte?: number): any
 
     /**
      * A stream of any messages related to a game the player is in
@@ -117,5 +117,5 @@ export interface Accesser {
      * @param cb the result callback
      */
     getLatestAboutMsgIds(userId: string, cb: (err: string, result: Array<String>) => void) : any
-    
+
 }

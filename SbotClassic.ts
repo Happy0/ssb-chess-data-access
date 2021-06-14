@@ -13,10 +13,13 @@ export class SbotClassic implements Accesser {
         this.sbot = sbot
     }
 
-    orderedChessStatusMessages() {
+    orderedChessStatusMessages(live: boolean, gte?: number) {
         const query = [
             {
             "$filter": {
+                timestamp: {
+                    "$gt": gte
+                },
                 value: {
                     content: {
                     type: {
@@ -29,7 +32,8 @@ export class SbotClassic implements Accesser {
         ]
 
         return this.sbot.query.read({
-            query: query
+            query: query,
+            live: live
         })
     }
 
