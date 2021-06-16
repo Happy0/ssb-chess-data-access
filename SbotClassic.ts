@@ -1,5 +1,6 @@
 import {Accesser} from './accesser'
 import pull from 'pull-stream'
+import Scan from 'pull-scan';
 
 /**
  * A typical(ish) ssb-server, as in the one ran by Patchwork for example.
@@ -76,39 +77,98 @@ export class SbotClassic implements Accesser {
 
     
     follows(userId: String, live: Boolean) {
-        const follows = this.sbot.links({
+        const source = this.sbot.links({
             source: userId,
             rel: 'contact',
             values: true,
-            reverse: true
+            reverse: true,
+            live: true
         });
 
-        // Ordering in reverse and filtering for unique means only
-        // the latest state (follow / unfollow is taken into account)
-        return pull(
-            follows,
-            pull.unique('dest'),
-            pull.filter(msg => msg.value.content.following !== false && msg.value.content.blocking !== true),
-            pull.map(msg => msg.dest)
+        const state = {
+            result: [],
+            live: false
+        };
+
+        const scanFn = (state, msg) => {
+           // console.log(msg)
+            if (msg.sync) {
+                state.live = true;
+            }
+            else if (msg.value.content.blocking === true || msg.value.content.following === false) {
+                state.result = state.result.filter(id => id !== msg.dest);
+            } else if (msg.value.content.following === true) {
+            
+                if (state.result.indexOf(msg.dest) === -1) {
+                    state.result.push(msg.dest);
+                }
+            }
+
+            return state;
+        }
+
+        const stream = pull(
+            source,
+            Scan(scanFn, state),
+            pull.filter(state => state.live),
+            pull.map(state => state.result)
         );
+
+        if (!live) {
+            console.log()
+            // Take the list when the stream has gone live, then end
+            return pull(stream, pull.take(1));
+        } else {
+            // Take the initial value then continue emitting updates
+            return stream;;
+        }
     }
     followedBy(userId: string, live: Boolean) {
-        const followsMe = this.sbot.links({
+        const source = this.sbot.links({
             dest: userId,
             rel: 'contact',
             values: true,
-            reverse: true
-          });
+            reverse: true,
+            live: true
+        });
 
+        const state = {
+            result: [],
+            live: false
+        };
 
-        // Ordering in reverse and filtering for unique means only
-        // the latest state (follow / unfollow is taken into account)
-        return pull(
-            followsMe,
-            pull.unique('source'),
-            pull.filter(msg => msg.value.content.following !== false),
-            pull.map(msg => msg.source)
+        const scanFn = (state, msg) => {
+           // console.log(msg)
+            if (msg.sync) {
+                state.live = true;
+            }
+            else if (msg.value.content.blocking === true || msg.value.content.following === false) {
+                state.result = state.result.filter(id => id !== msg.source);
+            } else if (msg.value.content.following === true) {
+            
+                if (state.result.indexOf(msg.source) === -1) {
+                    state.result.push(msg.source);
+                }
+            }
+
+            return state;
+        }
+
+        const stream = pull(
+            source,
+            Scan(scanFn, state),
+            pull.filter(state => state.live),
+            pull.map(state => state.result)
         );
+
+        if (!live) {
+            console.log()
+            // Take the list when the stream has gone live, then end
+            return pull(stream, pull.take(1));
+        } else {
+            // Take the initial value then continue emitting updates
+            return stream;;
+        }
     }
     getPlayerDisplayName(userId: string, cb: (err: any, cb: String) => void) {
         throw new Error('Method not implemented.');

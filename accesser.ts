@@ -97,7 +97,7 @@ export interface Accesser {
      * 
      * @param userId the public key of the user to return a stream for
      */
-    followedBy(userId: string, boolean): any
+    followedBy(userId: string, live: boolean): any
 
     /**
      * Calls back with the display name for the player (if known - otherwise null.)
