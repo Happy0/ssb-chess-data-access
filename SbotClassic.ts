@@ -1,6 +1,7 @@
 import {Accesser} from './accesser'
 import pull from 'pull-stream'
 import Scan from 'pull-scan';
+import cat from 'pull-cat'
 
 /**
  * A typical(ish) ssb-server, as in the one ran by Patchwork for example.
@@ -48,8 +49,20 @@ export class SbotClassic implements Accesser {
         return this.sbot.get(gameId, cb);    
     }
     allGameMessages(gameId: String, live: Boolean) {
-        throw new Error('Method not implemented.');
+
+        const originalMessage = pull(pull.once(gameId), pull.asyncMap(this.sbot.get))
+
+        const backlinks = pull(
+            this.sbot.backlinks.read({
+              query: [{$filter: {dest: gameId}}], // some message hash
+              index: 'DTA',
+              live: live
+            })
+        );
+
+        return pull(cat([originalMessage, backlinks]));
     }
+    
     chessInviteMessages(live: boolean) {
         throw new Error('Method not implemented.');
     }

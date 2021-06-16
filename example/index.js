@@ -13,12 +13,12 @@ Client( (err, ssbClient) => {
         "testtest": "Testing stuff and things..."
     }
 
-    pull(sbot.followedBy(me), pull.drain(e => console.log(e)));
+    //pull(sbot.followedBy(me), pull.drain(e => console.log(e)));
 
     //sbot.publishPublic(msg, (err, result) => {console.log(err) ; console.log(result)})
     //sbot.publishPrivate(msg, ["@RJ09Kfs3neEZPrbpbWVDxkN92x9moe3aPusOMOc4S2I=.ed25519"], (err, result)=> {console.log(err); console.log(result)});
 
-    //pull(sbot.linksToMessage('%LK5VCri5eXat1f04k8jNhB/rg5hUylNz9dGSpTdZL7A=.sha256', true), pull.drain(msg => console.log(msg)));
+    pull(sbot.allGameMessages('%QycN67xQP1gHB9+LIct4KGmwDTBNhmUa1QT0TFshZvA=.sha256', true), pull.drain(msg => console.log(msg)));
 
     //pull(sbot.messagesOfType("chess_invite", true), pull.drain(msg => console.log(msg)))
 
