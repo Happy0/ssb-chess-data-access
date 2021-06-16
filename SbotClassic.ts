@@ -164,7 +164,6 @@ export class SbotClassic implements Accesser {
         );
 
         if (!live) {
-            console.log()
             // Take the list when the stream has gone live, then end
             return pull(stream, pull.take(1));
         } else {
@@ -174,7 +173,22 @@ export class SbotClassic implements Accesser {
     }
 
     getPlayerDisplayName(userId: string, cb: (err: any, cb: String) => void) {
-        throw new Error('Method not implemented.')
+        const aboutStream = this.sbot.links({
+            dest: userId,
+            rel: 'about',
+            reverse: true,
+            values: true,
+            source: userId,
+          });
+
+        return pull(aboutStream, pull.find(msg => msg.value.content.name, (err, result) => {
+            if (err) {
+                cb(err, null);
+            } else {
+                result = (result && result.value.content.name) ? result.value.content.name : userId;
+                cb(null, result);
+            }
+        }))
     }
   
     chessMessagesForPlayerGames(playerId: any, opts: Object) {

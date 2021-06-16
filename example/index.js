@@ -32,6 +32,8 @@ Client( (err, ssbClient) => {
     //     pull.drain(e => console.log(e))
     // )
 
-    sbot.getLatestAboutMsgIds(me, (err, data) => console.log(data));
+   // sbot.getLatestAboutMsgIds(me, (err, data) => console.log(data));
+
+   sbot.getPlayerDisplayName(me, (err, result) => console.log(result))
 
 });
