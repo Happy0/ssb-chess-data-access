@@ -1,7 +1,8 @@
 import {Accesser} from './accesser'
 import pull from 'pull-stream'
-import Scan from 'pull-scan';
+import Scan from 'pull-scan'
 import cat from 'pull-cat'
+import AboutOOO from 'ssb-ooo-about'
 
 /**
  * A typical(ish) ssb-server, as in the one ran by Patchwork for example.
@@ -62,32 +63,20 @@ export class SbotClassic implements Accesser {
 
         return pull(cat([originalMessage, backlinks]));
     }
-    
+
     chessInviteMessages(live: boolean) {
-        throw new Error('Method not implemented.');
+        return pull(this.sbot.messagesByType({type: "chess_invite", live: live}))
     }
     chessInviteAcceptMessages(live: boolean) {
-        throw new Error('Method not implemented.');
+        return pull(this.sbot.messagesByType({type: "chess_invite_accept", live: live}))
     }
     chessEndMessages(live: boolean) {
-        throw new Error('Method not implemented.');
+        return pull(this.sbot.messagesByType({type: "chess_game_end", live: live}))
     }
     getLatestAboutMsgIds(userId: string, cb: (err: string, result: String[]) => void) {
-        throw new Error('Method not implemented.');
+        const about = AboutOOO(this.sbot, {})
+        about.async.getLatestMsgIds(userId, cb)
     }
-
-    // linksToMessage(messageId: String, live: Boolean) {
-    //     const source =  pull(
-    //         this.sbot.backlinks.read({
-    //           query: [{$filter: {dest: messageId}}], // some message hash
-    //           index: 'DTA',
-    //           live: live
-    //         })
-    //     );
-        
-    //     return source;
-    // }
-
     
     follows(userId: String, live: Boolean) {
         const source = this.sbot.links({
@@ -183,13 +172,11 @@ export class SbotClassic implements Accesser {
             return stream;;
         }
     }
-    getPlayerDisplayName(userId: string, cb: (err: any, cb: String) => void) {
-        throw new Error('Method not implemented.');
-    }
-    getLatestMsgIds(userId: string, cb: (err: string, result: String[]) => void) {
-        throw new Error('Method not implemented.');
-    }
 
+    getPlayerDisplayName(userId: string, cb: (err: any, cb: String) => void) {
+        throw new Error('Method not implemented.')
+    }
+  
     chessMessagesForPlayerGames(playerId: any, opts: Object) {
         throw new Error('Method not implemented.');
     }
