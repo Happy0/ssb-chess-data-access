@@ -3,6 +3,8 @@ import pull from 'pull-stream'
 import Scan from 'pull-scan'
 import cat from 'pull-cat'
 import AboutOOO from 'ssb-ooo-about'
+import {chessMessagesForOtherPlayersGames, chessMessagesForPlayerGames} from './chessMessagesForPlayers'
+
 
 /**
  * A typical(ish) ssb-server, as in the one ran by Patchwork for example.
@@ -191,11 +193,11 @@ export class SbotClassic implements Accesser {
         }))
     }
   
-    chessMessagesForPlayerGames(playerId: any, opts: Object) {
-        throw new Error('Method not implemented.');
+    chessMessagesForPlayerGames(playerId: any, opts: any) {
+        return chessMessagesForPlayerGames(this.sbot, playerId, opts);
     }
-    chessMessagesForOtherPlayersGames(playerId: any, opts: Object) {
-        throw new Error('Method not implemented.');
+    chessMessagesForOtherPlayersGames(playerId: any, opts: any) {
+        return chessMessagesForOtherPlayersGames(this.sbot, playerId, opts);
     }
 
 }

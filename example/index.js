@@ -34,6 +34,9 @@ Client( (err, ssbClient) => {
 
    // sbot.getLatestAboutMsgIds(me, (err, data) => console.log(data));
 
-   sbot.getPlayerDisplayName(me, (err, result) => console.log(result))
+   //sbot.getPlayerDisplayName(me, (err, result) => console.log(result))
+
+   pull(sbot.chessMessagesForPlayerGames(me, {since:1578671139706.002}), pull.drain(e => console.log(e)))
+
 
 });

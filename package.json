@@ -23,6 +23,7 @@
     "typescript": "^3.3.3"
   },
   "dependencies": {
+    "pull-async-filter": "^1.0.0",
     "pull-cat": "^1.1.11",
     "pull-scan": "^1.0.0",
     "pull-stream": "^3.6.14",
