@@ -85,7 +85,6 @@ export class SbotClassic implements Accesser {
             source: userId,
             rel: 'contact',
             values: true,
-            reverse: true,
             live: true
         });
 
@@ -132,7 +131,6 @@ export class SbotClassic implements Accesser {
             dest: userId,
             rel: 'contact',
             values: true,
-            reverse: true,
             live: true
         });
 
