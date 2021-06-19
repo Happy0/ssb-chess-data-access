@@ -36,7 +36,10 @@ Client( (err, ssbClient) => {
 
    //sbot.getPlayerDisplayName(me, (err, result) => console.log(result))
 
-   pull(sbot.chessMessagesForPlayerGames(me, {since: Date.now() - 120000000   }), pull.drain(e => console.log(e)))
+  // pull(sbot.chessMessagesForPlayerGames(me, {since: Date.now() - 120000000   }), pull.drain(e => console.log(e)))
+
+    const aboutStream = sbot.aboutSelfChangesUserIds(1624046946377)
+    pull(aboutStream, pull.drain(e => console.log(e)))
 
 
 });

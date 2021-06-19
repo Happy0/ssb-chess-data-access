@@ -198,4 +198,16 @@ export class SbotClassic implements Accesser {
         return chessMessagesForOtherPlayersGames(this.sbot, playerId, opts);
     }
 
+    aboutSelfChangesUserIds(since: number): any {
+        return pull(this.sbot.messagesByType({
+            type: "about",
+            live: true,
+            gte: since
+          }),
+            pull.filter(e => !e.sync),
+            pull.filter(e => e.value.author == e.value.content.about),
+            pull.map(e => e.value.author)
+          );
+    }
+
 }

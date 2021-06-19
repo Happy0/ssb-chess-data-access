@@ -118,4 +118,11 @@ export interface Accesser {
      */
     getLatestAboutMsgIds(userId: string, cb: (err: string, result: Array<String>) => void) : any
 
+    /**
+     * A live stream of user IDs emitted when the user has changed their own profile
+     * 
+     * @param since gte timestamp to start emitting messages from
+     */
+    aboutSelfChangesUserIds(since: number): any
+
 }
