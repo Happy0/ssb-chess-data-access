@@ -18,7 +18,7 @@ export class SbotClassic implements Accesser {
         this.sbot = sbot
     }
     whoAmI(cb: (err: any, result: string) => void): void {
-        this.sbot.whoAmI(cb)
+        this.sbot.whoami(cb)
     }
 
     orderedChessStatusMessages(live: boolean, gte?: number) {
