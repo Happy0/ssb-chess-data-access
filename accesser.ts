@@ -86,7 +86,7 @@ export interface Accesser {
      *
      * @param live whether the stream should continue and emit newly arriving messages
      */
-    chessEndMessages(live: boolean): any
+     chessEndMessages(live: boolean, reverse: boolean, since): any
 
     /**
      * Returns a pull-stream of all the user IDs of the users the given user is following.

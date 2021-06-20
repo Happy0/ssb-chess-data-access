@@ -20,7 +20,7 @@ Client( (err, ssbClient) => {
 
     //pull(sbot.allGameMessages('%QycN67xQP1gHB9+LIct4KGmwDTBNhmUa1QT0TFshZvA=.sha256', true), pull.drain(msg => console.log(msg)));
 
-    //pull(sbot.messagesOfType("chess_invite", true), pull.drain(msg => console.log(msg)))
+    pull(sbot.chessEndMessages(true, true), pull.drain(msg => console.log(msg)))
 
    // pull(sbot.logStream(true, 1623441679136), pull.drain(msg => console.log(msg)))
 
@@ -38,8 +38,8 @@ Client( (err, ssbClient) => {
 
   // pull(sbot.chessMessagesForPlayerGames(me, {since: Date.now() - 120000000   }), pull.drain(e => console.log(e)))
 
-    const aboutStream = sbot.aboutSelfChangesUserIds(1624046946377)
-    pull(aboutStream, pull.drain(e => console.log(e)))
+    // const aboutStream = sbot.aboutSelfChangesUserIds(1624046946377)
+    // pull(aboutStream, pull.drain(e => console.log(e)))
 
 
 });

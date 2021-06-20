@@ -75,8 +75,8 @@ export class SbotClassic implements Accesser {
     chessInviteAcceptMessages(live: boolean) {
         return pull(this.sbot.messagesByType({type: "chess_invite_accept", live: live}))
     }
-    chessEndMessages(live: boolean) {
-        return pull(this.sbot.messagesByType({type: "chess_game_end", live: live}))
+    chessEndMessages(live: boolean, reverse: boolean = false, since: number = 0) {
+        return pull(this.sbot.messagesByType({type: "chess_game_end", live: live, reverse: reverse, since: since}))
     }
     getLatestAboutMsgIds(userId: string, cb: (err: string, result: String[]) => void) {
         const about = AboutOOO(this.sbot, {})
