@@ -76,24 +76,28 @@ export class SbotBrowserCore implements Accesser {
         return typeStream;
     }
     chessEndMessages(keepLive: boolean, reverse: boolean, since: any) {
-        let {type, where, live, descending, gte, toPullStream} = this.sbot.db.dbOperators;
+        let {and, type, where, live, descending, gte, toPullStream} = this.sbot.db.dbOperators;
 
         const typeStreamDescending = this.sbot.db.query(
             where(
-                type('chess_game_end'),
+                and(
+                    type('chess_game_end'),
+                    gte(since, 'timestamp'),
+                )
             ),
             live({old: true, live:keepLive}),
-            gte(since, 'timestamp'),
             descending(),
             toPullStream()
         )
 
         const typeScreamAscending =  this.sbot.db.query(
             where(
-                type('chess_game_end'),
+                and(
+                    type('chess_game_end'),
+                    gte(since, 'timestamp'),
+                )
             ),
             live({old: true, live:keepLive}),
-            gte(since, 'timestamp'),
             toPullStream()
         )
     
