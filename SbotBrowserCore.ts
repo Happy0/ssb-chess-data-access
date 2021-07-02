@@ -13,6 +13,8 @@ export class SbotBrowserCore implements Accesser {
         this.sbot = sbot
     }
 
+
+
     whoAmI(cb: (err: any, result: string) => void): void {
         const myId = this.sbot.net.id
         cb(null, myId);
@@ -27,13 +29,14 @@ export class SbotBrowserCore implements Accesser {
     getInviteMessage(gameId: String, cb: (err: any, result: any) => any): void {
         this.sbot.db.get(gameId, cb);
     }
-    allGameMessages(gameId: String, live: Boolean) {
+    allGameMessages(gameId: String, keepLive: Boolean) {
+        let {where, hasRoot, live} = this.sbot.db.dbOperators
+
         const originalMessage = pull(pull.once(gameId), pull.asyncMap(this.sbot.get))
 
-        let {where, hasRoot} = this.sbot.db.dbOperators
-
         const backlinks = this.sbot.db.query(
-            where(hasRoot(gameId)
+            where(hasRoot(gameId),
+            live({old: true, live:keepLive})
         ))
 
         return pull(cat([originalMessage, backlinks]));
@@ -47,8 +50,17 @@ export class SbotBrowserCore implements Accesser {
     chessMessagesForOtherPlayersGames(playerId: string, opts: Object) {
         throw new Error("Method not implemented.");
     }
-    chessInviteMessages(live: boolean) {
-        throw new Error("Method not implemented.");
+    chessInviteMessages(keepLive: boolean) {
+        let {type, where, live} = this.sbot.db.dbOperators;
+
+        const typeStream = this.sbot.db.query(
+            where(
+                type('chess_invite'),
+                live({old: true, live:keepLive})
+            )
+        )
+    
+        return typeStream;
     }
     chessInviteAcceptMessages(live: boolean) {
         throw new Error("Method not implemented.");
