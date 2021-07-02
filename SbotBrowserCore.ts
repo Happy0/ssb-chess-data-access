@@ -13,8 +13,6 @@ export class SbotBrowserCore implements Accesser {
         this.sbot = sbot
     }
 
-
-
     whoAmI(cb: (err: any, result: string) => void): void {
         const myId = this.sbot.net.id
         cb(null, myId);
@@ -30,13 +28,14 @@ export class SbotBrowserCore implements Accesser {
         this.sbot.db.get(gameId, cb);
     }
     allGameMessages(gameId: String, keepLive: Boolean) {
-        let {where, hasRoot, live} = this.sbot.db.dbOperators
+        let {where, hasRoot, live, toPullStream} = this.sbot.db.dbOperators
 
         const originalMessage = pull(pull.once(gameId), pull.asyncMap(this.sbot.get))
 
         const backlinks = this.sbot.db.query(
             where(hasRoot(gameId)),
-            live({old: true, live:keepLive})
+            live({old: true, live:keepLive}),
+            toPullStream()
         )
 
         return pull(cat([originalMessage, backlinks]));
@@ -51,31 +50,33 @@ export class SbotBrowserCore implements Accesser {
         throw new Error("Method not implemented.");
     }
     chessInviteMessages(keepLive: boolean) {
-        let {type, where, live} = this.sbot.db.dbOperators;
+        let {type, where, live, toPullStream} = this.sbot.db.dbOperators;
 
         const typeStream = this.sbot.db.query(
             where(
                 type('chess_invite')
             ),
-            live({old: true, live:keepLive})
+            live({old: true, live:keepLive}),
+            toPullStream()
         )
     
         return typeStream;
     }
     chessInviteAcceptMessages(keepLive: boolean) {
-        let {type, where, live} = this.sbot.db.dbOperators;
+        let {type, where, live, toPullStream} = this.sbot.db.dbOperators;
 
         const typeStream = this.sbot.db.query(
             where(
                 type('chess_invite_accept'),
             ),
-            live({old: true, live:keepLive})
+            live({old: true, live:keepLive}),
+            toPullStream()
         )
     
         return typeStream;
     }
     chessEndMessages(keepLive: boolean, reverse: boolean, since: any) {
-        let {type, where, live, descending, gte} = this.sbot.db.dbOperators;
+        let {type, where, live, descending, gte, toPullStream} = this.sbot.db.dbOperators;
 
         const typeStreamDescending = this.sbot.db.query(
             where(
@@ -83,7 +84,8 @@ export class SbotBrowserCore implements Accesser {
             ),
             live({old: true, live:keepLive}),
             gte(since, 'timestamp'),
-            descending()
+            descending(),
+            toPullStream()
         )
 
         const typeScreamAscending =  this.sbot.db.query(
@@ -91,7 +93,8 @@ export class SbotBrowserCore implements Accesser {
                 type('chess_game_end'),
             ),
             live({old: true, live:keepLive}),
-            gte(since, 'timestamp')
+            gte(since, 'timestamp'),
+            toPullStream()
         )
     
         return reverse ? typeStreamDescending : typeScreamAscending;
