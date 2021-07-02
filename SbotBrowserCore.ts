@@ -1,6 +1,8 @@
 import { Accesser } from "./accesser";
 import pull from 'pull-stream'
 import cat from 'pull-cat'
+import Pushable from 'pull-pushable'
+import Abortable from 'pull-abortable'
 
 /**
  * An instance of ssb-browser-core ( https://github.com/arj03/ssb-browser-core )
@@ -12,6 +14,9 @@ export class SbotBrowserCore implements Accesser {
     constructor(sbot: any) {
         this.sbot = sbot
     }
+
+    syncMsg = {sync: true}
+    syncMsgStream = pull.once(this.syncMsg);
 
     whoAmI(cb: (err: any, result: string) => void): void {
         const myId = this.sbot.net.id
@@ -52,56 +57,86 @@ export class SbotBrowserCore implements Accesser {
     chessInviteMessages(keepLive: boolean) {
         let {type, where, live, toPullStream} = this.sbot.db.dbOperators;
 
-        const typeStream = this.sbot.db.query(
-            where(
-                type('chess_invite')
-            ),
-            live({old: true, live:keepLive}),
-            toPullStream()
-        )
+        const makeStream = (liveOnly: boolean) => {
+            return this.sbot.db.query(
+                where(
+                    type('chess_invite')
+                ),
+                live({old: !liveOnly, live:liveOnly}),
+                toPullStream()
+            )
+        }
+
+        const oldStream = makeStream(false);
+        const liveStream = makeStream(true);
     
-        return typeStream;
+        if (!keepLive) {
+            return oldStream;
+        } else {
+            return this.makeLiveStream(oldStream, liveStream)
+        }
     }
     chessInviteAcceptMessages(keepLive: boolean) {
         let {type, where, live, toPullStream} = this.sbot.db.dbOperators;
 
-        const typeStream = this.sbot.db.query(
-            where(
-                type('chess_invite_accept'),
-            ),
-            live({old: true, live:keepLive}),
-            toPullStream()
-        )
+        const makeStream = (liveOnly: boolean) => {
+            return this.sbot.db.query(
+                where(
+                    type('chess_invite_accept')
+                ),
+                live({old: !liveOnly, live:liveOnly}),
+                toPullStream()
+            )
+        }
+
+        const oldStream = makeStream(false);
+        const liveStream = makeStream(true);
     
-        return typeStream;
+        if (!keepLive) {
+            return oldStream;
+        } else {
+            return this.makeLiveStream(oldStream, liveStream)
+        }    
     }
     chessEndMessages(keepLive: boolean, reverse: boolean, since: any) {
         let {and, type, where, live, descending, gte, toPullStream} = this.sbot.db.dbOperators;
 
-        const typeStreamDescending = this.sbot.db.query(
-            where(
-                and(
-                    type('chess_game_end'),
-                    gte(since, 'timestamp'),
-                )
-            ),
-            live({old: true, live:keepLive}),
-            descending(),
-            toPullStream()
-        )
-
-        const typeScreamAscending =  this.sbot.db.query(
-            where(
-                and(
-                    type('chess_game_end'),
-                    gte(since, 'timestamp'),
-                )
-            ),
-            live({old: true, live:keepLive}),
-            toPullStream()
-        )
+        const makeStream = (reverse: boolean, isLive: boolean) => {
+            const typeStreamDescending = this.sbot.db.query(
+                where(
+                    and(
+                        type('chess_game_end'),
+                        gte(since, 'timestamp'),
+                    )
+                ),
+                live({old: !isLive, live:isLive}),
+                descending(),
+                toPullStream()
+            )
     
-        return reverse ? typeStreamDescending : typeScreamAscending;
+            const typeScreamAscending =  this.sbot.db.query(
+                where(
+                    and(
+                        type('chess_game_end'),
+                        gte(since, 'timestamp'),
+                    )
+                ),
+                live({old: !isLive, live:isLive}),
+                toPullStream()
+            )
+        
+            return reverse ? typeStreamDescending : typeScreamAscending;
+        }
+
+        const oldStream = makeStream(reverse, false);
+        const newStream = makeStream(reverse, false);
+
+        if (!keepLive) {
+            return oldStream;
+        } else {
+            return this.makeLiveStream(oldStream, newStream);
+        }
+      
     }
     follows(userId: String, live: boolean) {
         throw new Error("Method not implemented.");
@@ -118,4 +153,27 @@ export class SbotBrowserCore implements Accesser {
     aboutSelfChangesUserIds(since: number) {
         throw new Error("Method not implemented.");
     }
+
+    // TODO: write a comment explaining this...
+    makeLiveStream(oldStream, liveStream) {
+        let timestamp = 0;
+
+        const abortable1 = Abortable();
+        const abortable2 = Abortable(() => abortable1.abort());
+        
+        const livePushable = Pushable();
+
+        pull(liveStream, abortable2, pull.drain(msg => livePushable.push(msg)));
+
+        const olds = pull(oldStream, pull.map(msg => {
+            timestamp = msg.timestamp;
+            return msg;
+        }));
+
+        // Don't repeat any we already seen in the old stream...
+        const news = pull(livePushable, pull.filter(msg => msg.timestamp > timestamp));
+
+        return cat([olds, this.syncMsgStream, abortable1, news])                
+    }
+
 }
