@@ -35,9 +35,9 @@ export class SbotBrowserCore implements Accesser {
         const originalMessage = pull(pull.once(gameId), pull.asyncMap(this.sbot.get))
 
         const backlinks = this.sbot.db.query(
-            where(hasRoot(gameId),
+            where(hasRoot(gameId)),
             live({old: true, live:keepLive})
-        ))
+        )
 
         return pull(cat([originalMessage, backlinks]));
     }
@@ -55,18 +55,46 @@ export class SbotBrowserCore implements Accesser {
 
         const typeStream = this.sbot.db.query(
             where(
-                type('chess_invite'),
-                live({old: true, live:keepLive})
-            )
+                type('chess_invite')
+            ),
+            live({old: true, live:keepLive})
         )
     
         return typeStream;
     }
-    chessInviteAcceptMessages(live: boolean) {
-        throw new Error("Method not implemented.");
+    chessInviteAcceptMessages(keepLive: boolean) {
+        let {type, where, live} = this.sbot.db.dbOperators;
+
+        const typeStream = this.sbot.db.query(
+            where(
+                type('chess_invite_accept'),
+            ),
+            live({old: true, live:keepLive})
+        )
+    
+        return typeStream;
     }
-    chessEndMessages(live: boolean, reverse: boolean, since: any) {
-        throw new Error("Method not implemented.");
+    chessEndMessages(keepLive: boolean, reverse: boolean, since: any) {
+        let {type, where, live, descending, gte} = this.sbot.db.dbOperators;
+
+        const typeStreamDescending = this.sbot.db.query(
+            where(
+                type('chess_game_end'),
+            ),
+            live({old: true, live:keepLive}),
+            gte(since, 'timestamp'),
+            descending()
+        )
+
+        const typeScreamAscending =  this.sbot.db.query(
+            where(
+                type('chess_game_end'),
+            ),
+            live({old: true, live:keepLive}),
+            gte(since, 'timestamp')
+        )
+    
+        return reverse ? typeStreamDescending : typeScreamAscending;
     }
     follows(userId: String, live: boolean) {
         throw new Error("Method not implemented.");
