@@ -150,8 +150,28 @@ export class SbotBrowserCore implements Accesser {
         );
     }
     followedBy(userId: string, live: boolean) {
-        console.log("FollowedBy not yet implemented");
-        return pull.once([]);
+        if (live) {
+            console.log("Live follows not yet implemented")
+        }
+        
+        const opts = {
+          start: userId,
+          max: 1
+        }
+
+        return pull(
+            pull.once(opts),
+            pull.asyncMap(this.sbot.net.friends.hops),
+            pull.map(feeds => {
+                const followers = []
+                for(var f of feeds) {
+                  if (feeds[f] > 0)
+                    followers.push(f)
+                }
+
+                return followers;
+            })
+        )
     }
     getPlayerDisplayName(userId: string, cb: (err: any, cb: String) => void) {
         const displayName = this.sbot.getProfileName(userId)
