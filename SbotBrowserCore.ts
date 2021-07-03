@@ -157,6 +157,7 @@ export class SbotBrowserCore implements Accesser {
     // TODO: write a comment explaining this...
     makeLiveStream(oldStream, liveStream) {
         let timestamp = 0;
+        let key = null;
 
         const abortable1 = Abortable();
         const abortable2 = Abortable(() => abortable1.abort());
@@ -167,11 +168,14 @@ export class SbotBrowserCore implements Accesser {
 
         const olds = pull(oldStream, pull.map(msg => {
             timestamp = msg.timestamp;
+            key = msg.key;
             return msg;
         }));
 
         // Don't repeat any we already seen in the old stream...
-        const news = pull(livePushable, pull.filter(msg => msg.timestamp > timestamp));
+        const news = pull(livePushable, 
+            pull.filter(msg => msg.timestamp > timestamp || (msg.timestamp === timestamp && msg.key !== key))
+        );
 
         return cat([olds, this.syncMsgStream, abortable1, news])                
     }
