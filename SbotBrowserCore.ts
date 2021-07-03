@@ -139,13 +139,23 @@ export class SbotBrowserCore implements Accesser {
       
     }
     follows(userId: String, live: boolean) {
-        throw new Error("Method not implemented.");
+        if (live) {
+            console.log("Live follows not yet implemented")
+        }
+
+        return pull(
+            pull.once(userId),
+            pull.asyncMap(this.sbot.getGraphForFeed),
+            pull.map(result => result.following)
+        );
     }
     followedBy(userId: string, live: boolean) {
-        throw new Error("Method not implemented.");
+        console.log("FollowedBy not yet implemented");
+        return pull.once([]);
     }
     getPlayerDisplayName(userId: string, cb: (err: any, cb: String) => void) {
-        throw new Error("Method not implemented.");
+        const displayName = this.sbot.getProfileName(userId)
+        cb(null, displayName);
     }
     getLatestAboutMsgIds(userId: string, cb: (err: string, result: String[]) => void) {
         throw new Error("Method not implemented.");
