@@ -16,6 +16,12 @@ export class SbotBrowserCore implements Accesser {
         this.sbot = sbot
     }
 
+    chessTypeMessages = [
+        'chess_invite',
+        'chess_move',
+        'chess_invite_accept',
+        'chess_game_end'];
+
     syncMsg = {sync: true}
     syncMsgStream = pull.once(this.syncMsg);
 
@@ -46,14 +52,13 @@ export class SbotBrowserCore implements Accesser {
 
         return pull(cat([originalMessage, backlinks]));
     }
-    orderedChessStatusMessages(live: boolean, gte?: number) {
-        throw new Error("Method not implemented.");
+
+    chessMessagesForPlayerGames(playerId: string, opts: any) {
+        return this.chessMessageStreamForPlayerGames(playerId, true, opts);
     }
-    chessMessagesForPlayerGames(playerId: string, opts: Object) {
-        throw new Error("Method not implemented.");
-    }
+
     chessMessagesForOtherPlayersGames(playerId: string, opts: Object) {
-        throw new Error("Method not implemented.");
+        return this.chessMessageStreamForPlayerGames(playerId, false, opts);
     }
     chessInviteMessages(keepLive: boolean) {
         let {type, where, live, toPullStream} = this.sbot.db.dbOperators;
@@ -198,6 +203,11 @@ export class SbotBrowserCore implements Accesser {
             toPullStream()
         )
     }
+    orderedChessStatusMessages(live: boolean, gte?: number) {
+        // This isn't actually needed by anything yet... I just thought it might be useful in the future.
+        // Will implement later...
+        throw new Error("Method not implemented.");
+    }
 
     // TODO: write a comment explaining this...
     makeLiveStream(oldStream, liveStream) {
@@ -233,6 +243,90 @@ export class SbotBrowserCore implements Accesser {
                 type("about")
             ),
             descending()
+        )
+    }
+
+    chessMessageStreamForPlayerGames(playerId: string, playerShouldBeIn: boolean, opts: any) {
+        let {where, or, and, gte, type, descending, toPullStream} = this.sbot.db.dbOperators;
+        const messageTypes = opts && opts.messageTypes ? opts.messageTypes : this.chessTypeMessages;
+        const since = opts ? opts.since : 0;
+        const reverse = opts ? opts.reverse : false;
+
+        const getSourceStream = () => {
+            if (reverse) {
+                return this.sbot.db.query(
+                    where(
+                        and(
+                            or(
+                                messageTypes.map(typeValue => type(typeValue))
+                            ),
+                            gte(since, 'timestamp')
+                        )
+                    ),
+                    descending(),
+                    toPullStream()
+                )
+            } else {
+                return this.sbot.db.query(
+                    where(
+                        and(
+                            or(
+                                messageTypes.map(typeValue => type(typeValue))
+                            ),
+                            gte(since, 'timestamp')
+                        )
+                    ),
+                    toPullStream()
+                )
+            }
+        }
+
+        const isPlayerInInvite = (msg, id) => {
+            // sbot.get has a different schema...
+            if (!msg.value) {
+                msg.value = {};
+                msg.value.author = msg.author;
+                msg.value.content = msg.content;
+            }
+        
+            return msg.value.author == id || msg.value.content.inviting == id;
+        }
+
+        function getGameId(msg) {
+            if (msg.value.content.type === 'chess_invite') {
+              return msg.key;
+            }
+            if (!msg.value || !msg.value.content || !msg.value.content.root) {
+              return null;
+            }
+            return msg.value.content.root;
+          }
+
+        const messageWithPlayerCheck = (msg, cb) => {
+            const gameId = getGameId(msg);
+
+            this.getInviteMessage(gameId, (err, msg) => {
+                if (err) {
+                    cb(err, null);
+                    return;
+                }
+
+                const playerInGame = isPlayerInInvite(msg, playerId);
+
+                cb(err, {
+                    msg: msg,
+                    check: playerInGame
+                })
+
+            })
+
+        }
+
+        return pull(
+            getSourceStream(),
+            pull.asyncMap(messageWithPlayerCheck),
+            pull.filter(msg => playerShouldBeIn ? msg.check : !msg.check),
+            pull.map(msg => msg.msg)
         )
     }
 
