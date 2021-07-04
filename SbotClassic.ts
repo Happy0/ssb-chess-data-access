@@ -5,7 +5,6 @@ import cat from 'pull-cat'
 import AboutOOO from 'ssb-ooo-about'
 import {chessMessagesForOtherPlayersGames, chessMessagesForPlayerGames} from './chessMessagesForPlayers'
 
-
 /**
  * A typical(ish) ssb-server, as in the one ran by Patchwork for example.
  * 
@@ -79,7 +78,9 @@ export class SbotClassic implements Accesser {
         return pull(this.sbot.messagesByType({type: "chess_game_end", live: live, reverse: reverse, since: since}))
     }
     getLatestAboutMsgIds(userId: string, cb: (err: string, result: String[]) => void) {
-        const about = AboutOOO(this.sbot, {})
+        const getAboutStream = this.getAboutStream.bind(this);
+        const about = AboutOOO(getAboutStream);
+        
         about.async.getLatestMsgIds(userId, cb)
     }
     
@@ -213,4 +214,13 @@ export class SbotClassic implements Accesser {
           );
     }
 
+    getAboutStream(id) {
+        return this.sbot.links({
+          dest: id,
+          rel: "about",
+          reverse: true,
+          values: true,
+          source: id
+        })
+    }
 }

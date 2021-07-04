@@ -3,6 +3,7 @@ import pull from 'pull-stream'
 import cat from 'pull-cat'
 import Pushable from 'pull-pushable'
 import Abortable from 'pull-abortable'
+import AboutOOO from 'ssb-ooo-about'
 
 /**
  * An instance of ssb-browser-core ( https://github.com/arj03/ssb-browser-core )
@@ -96,7 +97,7 @@ export class SbotBrowserCore implements Accesser {
             return oldStream;
         } else {
             return this.makeLiveStream(oldStream, liveStream)
-        }    
+        }
     }
     chessEndMessages(keepLive: boolean, reverse: boolean, since: any) {
         let {and, type, where, live, descending, gte, toPullStream} = this.sbot.db.dbOperators;
@@ -178,7 +179,10 @@ export class SbotBrowserCore implements Accesser {
         cb(null, displayName);
     }
     getLatestAboutMsgIds(userId: string, cb: (err: string, result: String[]) => void) {
-        throw new Error("Method not implemented.");
+        const getAboutStream = this.getAboutStream.bind(this);
+        const about = AboutOOO(getAboutStream);
+
+        about.async.getLatestMsgIds(userId, cb);
     }
     aboutSelfChangesUserIds(since: number) {
         let {and, type, where, live, gte, toPullStream} = this.sbot.db.dbOperators;
@@ -219,6 +223,17 @@ export class SbotBrowserCore implements Accesser {
         );
 
         return cat([olds, this.syncMsgStream, abortable1, news])                
+    }
+
+    getAboutStream(id) {
+        let {type, where, descending, toPullStream} = this.sbot.db.dbOperators;
+
+        return this.sbot.query(
+            where(
+                type("about")
+            ),
+            descending()
+        )
     }
 
 }

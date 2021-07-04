@@ -29,6 +29,6 @@
     "pull-pushable": "^2.2.0",
     "pull-scan": "^1.0.0",
     "pull-stream": "^3.6.14",
-    "ssb-ooo-about": "^1.0.0"
+    "ssb-ooo-about": "2.0.0"
   }
 }
