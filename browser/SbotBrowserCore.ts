@@ -192,7 +192,7 @@ export class SbotBrowserCore implements Accesser {
     aboutSelfChangesUserIds(since: number) {
         let {and, type, where, live, gte, toPullStream} = this.sbot.db.dbOperators;
 
-        return this.sbot.query(
+        return pull(this.sbot.query(
             where(
                 and(
                     type("about"),
@@ -201,6 +201,9 @@ export class SbotBrowserCore implements Accesser {
             ),
             live({old: true, live:true}),
             toPullStream()
+        ),
+            pull.filter(e => e.value.author == e.value.content.about),
+            pull.map(e => e.value.author)
         )
     }
     orderedChessStatusMessages(live: boolean, gte?: number) {
