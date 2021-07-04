@@ -50,14 +50,17 @@ export class SbotBrowserCore implements Accesser {
             toPullStream()
         )
 
+        // TODO: this needs to use makeLiveStream
         return pull(cat([originalMessage, backlinks]));
     }
 
     chessMessagesForPlayerGames(playerId: string, opts: any) {
+          // TODO: this needs to use makeLiveStream
         return this.chessMessageStreamForPlayerGames(playerId, true, opts);
     }
 
     chessMessagesForOtherPlayersGames(playerId: string, opts: Object) {
+          // TODO: this needs to use makeLiveStream
         return this.chessMessageStreamForPlayerGames(playerId, false, opts);
     }
     chessInviteMessages(keepLive: boolean) {
