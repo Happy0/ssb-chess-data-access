@@ -153,7 +153,7 @@ export class SbotBrowserCore implements Accesser {
         if (live) {
             console.log("Live follows not yet implemented")
         }
-        
+
         const opts = {
           start: userId,
           max: 1
@@ -181,7 +181,18 @@ export class SbotBrowserCore implements Accesser {
         throw new Error("Method not implemented.");
     }
     aboutSelfChangesUserIds(since: number) {
-        throw new Error("Method not implemented.");
+        let {and, type, where, live, gte, toPullStream} = this.sbot.db.dbOperators;
+
+        return this.sbot.query(
+            where(
+                and(
+                    type("about"),
+                    gte(since, 'timestamp')
+                )
+            ),
+            live({old: true, live:true}),
+            toPullStream()
+        )
     }
 
     // TODO: write a comment explaining this...
