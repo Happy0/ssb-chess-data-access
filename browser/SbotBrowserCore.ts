@@ -1,4 +1,4 @@
-import { Accesser } from "./accesser";
+import { Accesser } from "../accesser";
 import pull from 'pull-stream'
 import cat from 'pull-cat'
 import Pushable from 'pull-pushable'

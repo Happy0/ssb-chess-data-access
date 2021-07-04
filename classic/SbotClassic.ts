@@ -1,4 +1,4 @@
-import {Accesser} from './accesser'
+import {Accesser} from '../accesser'
 import pull from 'pull-stream'
 import Scan from 'pull-scan'
 import cat from 'pull-cat'
