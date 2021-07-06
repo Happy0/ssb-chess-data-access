@@ -41,7 +41,7 @@ export class SbotBrowserCore implements Accesser {
         this.sbot.db.get(gameId, cb);
     }
     allGameMessages(gameId: String, keepLive: Boolean) {
-        let {where, hasRoot, live, toPullStream} = this.sbot.db.dbOperators
+        let {where, hasRoot, live, toPullStream} = this.sbot.dbOperators
 
         const makeStream =(isLive: boolean) => {
             return this.sbot.db.query(
@@ -71,7 +71,7 @@ export class SbotBrowserCore implements Accesser {
         return this.chessMessageStreamForPlayerGames(playerId, false, opts);
     }
     chessInviteMessages(keepLive: boolean) {
-        let {type, where, live, toPullStream} = this.sbot.db.dbOperators;
+        let {type, where, live, toPullStream} = this.sbot.dbOperators;
 
         const makeStream = (liveOnly: boolean) => {
             return this.sbot.db.query(
@@ -93,7 +93,7 @@ export class SbotBrowserCore implements Accesser {
         }
     }
     chessInviteAcceptMessages(keepLive: boolean) {
-        let {type, where, live, toPullStream} = this.sbot.db.dbOperators;
+        let {type, where, live, toPullStream} = this.sbot.dbOperators;
 
         const makeStream = (liveOnly: boolean) => {
             return this.sbot.db.query(
@@ -115,7 +115,7 @@ export class SbotBrowserCore implements Accesser {
         }
     }
     chessEndMessages(keepLive: boolean, reverse: boolean, since: any) {
-        let {and, type, where, live, descending, gte, toPullStream} = this.sbot.db.dbOperators;
+        let {and, type, where, live, descending, gte, toPullStream} = this.sbot.dbOperators;
 
         const makeStream = (reverse: boolean, isLive: boolean) => {
             const typeStreamDescending = this.sbot.db.query(
@@ -200,7 +200,7 @@ export class SbotBrowserCore implements Accesser {
         about.async.getLatestMsgIds(userId, cb);
     }
     aboutSelfChangesUserIds(since: number) {
-        let {and, type, where, live, gte, toPullStream} = this.sbot.db.dbOperators;
+        let {and, type, where, live, gte, toPullStream} = this.sbot.dbOperators;
 
         return pull(this.sbot.query(
             where(
@@ -249,7 +249,7 @@ export class SbotBrowserCore implements Accesser {
     }
 
     getAboutStream(id) {
-        let {type, where, descending, toPullStream} = this.sbot.db.dbOperators;
+        let {type, where, descending, toPullStream} = this.sbot.dbOperators;
 
         return this.sbot.query(
             where(
@@ -260,7 +260,7 @@ export class SbotBrowserCore implements Accesser {
     }
 
     chessMessageStreamForPlayerGames(playerId: string, playerShouldBeIn: boolean, opts: any) {
-        let {where, or, and, gte, type, descending, toPullStream, live} = this.sbot.db.dbOperators;
+        let {where, or, and, gte, type, descending, toPullStream, live} = this.sbot.dbOperators;
         const messageTypes = opts && opts.messageTypes ? opts.messageTypes : this.chessTypeMessages;
         const since = opts ? opts.since : 0;
         const reverse = opts ? opts.reverse : false;
