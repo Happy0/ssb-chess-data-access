@@ -20,7 +20,8 @@ export class SbotBrowserCore implements Accesser {
         'chess_invite',
         'chess_move',
         'chess_invite_accept',
-        'chess_game_end'];
+        'chess_game_end'
+    ];
 
     syncMsg = {sync: true}
     syncMsgStream = pull.once(this.syncMsg);
@@ -42,16 +43,24 @@ export class SbotBrowserCore implements Accesser {
     allGameMessages(gameId: String, keepLive: Boolean) {
         let {where, hasRoot, live, toPullStream} = this.sbot.db.dbOperators
 
-        const originalMessage = pull(pull.once(gameId), pull.asyncMap(this.sbot.get))
+        const makeStream =(isLive: boolean) => {
+            return this.sbot.db.query(
+                where(hasRoot(gameId)),
+                live({old: !isLive, isLive}),
+                toPullStream()
+            )
+        }
 
-        const backlinks = this.sbot.db.query(
-            where(hasRoot(gameId)),
-            live({old: true, live:keepLive}),
-            toPullStream()
-        )
+        const originalMessage = pull(pull.once(gameId), pull.asyncMap(this.sbot.get));
+        const oldLinks = makeStream(false);
 
-        // TODO: this needs to use makeLiveStream
-        return pull(cat([originalMessage, backlinks]));
+        if (!keepLive) {
+            return pull(cat([originalMessage, oldLinks]));
+        } else {
+            const newLinks = makeStream(true);
+            const backlinks = this.makeLiveStream(oldLinks, newLinks)
+            return pull(cat([originalMessage, backlinks]))            
+        }
     }
 
     chessMessagesForPlayerGames(playerId: string, opts: any) {
