@@ -122,7 +122,7 @@ export class SbotBrowserCore implements Accesser {
                 where(
                     and(
                         type('chess_game_end'),
-                        gte(since, 'timestamp'),
+                        gte(since || 0, 'timestamp'),
                     )
                 ),
                 live({old: !isLive, live:isLive}),
@@ -134,7 +134,7 @@ export class SbotBrowserCore implements Accesser {
                 where(
                     and(
                         type('chess_game_end'),
-                        gte(since, 'timestamp'),
+                        gte(since || 0, 'timestamp'),
                     )
                 ),
                 live({old: !isLive, live:isLive}),
@@ -206,7 +206,7 @@ export class SbotBrowserCore implements Accesser {
             where(
                 and(
                     type("about"),
-                    gte(since, 'timestamp')
+                    gte(since || 0, 'timestamp')
                 )
             ),
             live({old: true, live:true}),
