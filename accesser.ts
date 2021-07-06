@@ -8,7 +8,7 @@ export interface Accesser {
     /*
     * Returns the user's public key 
     */
-    whoAmI(cb: (err: any, result: string) => void): void;
+    whoAmI(cb: (err: any, result: any) => void): void;
 
     /*
     * Publishes a message publicly. Message should be part of the ssb-chess protocol.

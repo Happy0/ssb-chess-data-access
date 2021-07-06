@@ -26,9 +26,9 @@ export class SbotBrowserCore implements Accesser {
     syncMsg = {sync: true}
     syncMsgStream = pull.once(this.syncMsg);
 
-    whoAmI(cb: (err: any, result: string) => void): void {
+    whoAmI(cb: (err: any, result: any) => void): void {
         const myId = this.sbot.net.id
-        cb(null, myId);
+        cb(null, {id:myId});
     }
     publishPublicChessMessage(payload: any, cb: (err: any) => any): void {
         this.sbot.net.publish(payload, cb);
@@ -190,8 +190,14 @@ export class SbotBrowserCore implements Accesser {
         )
     }
     getPlayerDisplayName(userId: string, cb: (err: any, cb: String) => void) {
-        const displayName = this.sbot.getProfileName(userId)
-        cb(null, displayName);
+        const profile = this.sbot.getProfie(userId)
+        if (!profile) {
+            return cb(null,userId);
+        } else if (!profile.name) {
+            return cb(null, userId)
+        } else {
+            cb(null, profile.name);
+        }
     }
     getLatestAboutMsgIds(userId: string, cb: (err: string, result: String[]) => void) {
         const getAboutStream = this.getAboutStream.bind(this);
