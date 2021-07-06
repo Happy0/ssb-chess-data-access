@@ -64,12 +64,10 @@ export class SbotBrowserCore implements Accesser {
     }
 
     chessMessagesForPlayerGames(playerId: string, opts: any) {
-          // TODO: this needs to use makeLiveStream
         return this.chessMessageStreamForPlayerGames(playerId, true, opts);
     }
 
     chessMessagesForOtherPlayersGames(playerId: string, opts: Object) {
-          // TODO: this needs to use makeLiveStream
         return this.chessMessageStreamForPlayerGames(playerId, false, opts);
     }
     chessInviteMessages(keepLive: boolean) {
@@ -262,12 +260,14 @@ export class SbotBrowserCore implements Accesser {
     }
 
     chessMessageStreamForPlayerGames(playerId: string, playerShouldBeIn: boolean, opts: any) {
-        let {where, or, and, gte, type, descending, toPullStream} = this.sbot.db.dbOperators;
+        let {where, or, and, gte, type, descending, toPullStream, live} = this.sbot.db.dbOperators;
         const messageTypes = opts && opts.messageTypes ? opts.messageTypes : this.chessTypeMessages;
         const since = opts ? opts.since : 0;
         const reverse = opts ? opts.reverse : false;
 
-        const getSourceStream = () => {
+        const liveStream = (opts && (opts.live !== undefined && opts.live !== null)) ? opts.live : true;
+
+        const getSourceStream = (stayLive: boolean) => {
             if (reverse) {
                 return this.sbot.db.query(
                     where(
@@ -278,6 +278,7 @@ export class SbotBrowserCore implements Accesser {
                             gte(since, 'timestamp')
                         )
                     ),
+                    live({old: !stayLive, live:stayLive}),
                     descending(),
                     toPullStream()
                 )
@@ -291,6 +292,7 @@ export class SbotBrowserCore implements Accesser {
                             gte(since, 'timestamp')
                         )
                     ),
+                    live({old: !stayLive, live:stayLive}),
                     toPullStream()
                 )
             }
@@ -334,11 +336,13 @@ export class SbotBrowserCore implements Accesser {
                 })
 
             })
-
         }
 
+        const sourceStream = 
+            liveStream ? getSourceStream(false) : this.makeLiveStream(getSourceStream(false), getSourceStream(true))
+
         return pull(
-            getSourceStream(),
+            sourceStream,
             pull.asyncMap(messageWithPlayerCheck),
             pull.filter(msg => playerShouldBeIn ? msg.check : !msg.check),
             pull.map(msg => msg.msg)
