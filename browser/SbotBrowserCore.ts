@@ -190,7 +190,7 @@ export class SbotBrowserCore implements Accesser {
         )
     }
     getPlayerDisplayName(userId: string, cb: (err: any, cb: String) => void) {
-        const profile = this.sbot.getProfie(userId)
+        const profile = this.sbot.getProfile(userId)
         if (!profile) {
             return cb(null,userId);
         } else if (!profile.name) {
