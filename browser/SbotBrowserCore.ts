@@ -30,10 +30,10 @@ export class SbotBrowserCore implements Accesser {
         const myId = this.sbot.net.id
         cb(null, {id:myId});
     }
-    publishPublicChessMessage(payload: any, cb: (err: any) => any): void {
+    publishPublicChessMessage(payload: any, cb: (err: any, result: any) => any): void {
         this.sbot.net.publish(payload, cb);
     }
-    publishPrivateChessMessage(payload: any, participants: String[], cb: (err: any) => any): void {
+    publishPrivateChessMessage(payload: any, participants: String[], cb: (err: any, result: any) => any): void {
         const content = this.sbot.box(payload, participants.map((x) => x.substr(1)));
         this.sbot.net.publish(content, cb);
     }
@@ -46,12 +46,12 @@ export class SbotBrowserCore implements Accesser {
         const makeStream =(isLive: boolean) => {
             return this.sbot.db.query(
                 where(hasRoot(gameId)),
-                live({old: !isLive, isLive}),
+                isLive ? live() : null,
                 toPullStream()
             )
         }
 
-        const originalMessage = pull(pull.once(gameId), pull.asyncMap(this.sbot.get));
+        const originalMessage = pull(pull.once(gameId), pull.asyncMap(this.sbot.db.get));
         const oldLinks = makeStream(false);
 
         if (!keepLive) {
@@ -59,7 +59,7 @@ export class SbotBrowserCore implements Accesser {
         } else {
             const newLinks = makeStream(true);
             const backlinks = this.makeLiveStream(oldLinks, newLinks)
-            return pull(cat([originalMessage, backlinks]))            
+            return pull(cat([originalMessage, backlinks, this.syncMsg, newLinks]))            
         }
     }
 

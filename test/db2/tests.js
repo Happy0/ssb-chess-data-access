@@ -65,17 +65,51 @@ setTimeout(() => {
     });
 
     test('publishPrivateChessMessage', (t) => {
-        const message = {
-            "root": "%Wrb+cksaF2mErMOd9gQH38LehEj/HUZWKc9FHrafTaY=.sha256",
-            "type": "chess_chat",
-            "msg": "testaroonie"
-        };
 
-        dataAccess.publishPrivateChessMessage(message, [`@${keys.public}`], (err) => {
-            t.equals(err, null, "Private message should be published successfully");
+        const invite = {
+            "type": "chess_invite",
+            "inviting": "@NeB4q4Hy9IiMxs5L08oevEhivxW+/aDu/s/0SkNayi0=.ed25519",
+            "myColor": "black",
+            "branch": [
+              "%5cYKNR0PEz793N1Rtli93IcuGDZHsHDu+06Ii+OEIPw=.sha256",
+              "%vcNed83YdIA0mF0H/w5NFyy1Z/PazyomsWVhzWDnru8=.sha256",
+              "%+pVoEqGX3tYSKbCpvEa7oto2NvPxR1/UAIv+i+cUPRA=.sha256",
+              "%01ksKwoAAkrY+bjYdP1WCgtZHHGGcZ8bXmEoYnUlyn4=.sha256",
+              "%9oK3ltfnvH9/7h5sxD6Cu+IYoSXcOddTMPJ5L6dLsUM=.sha256",
+              "%ldUBk14tkOXNoLECOP9BYDyCyBh4p9KvfHAIzpwcK9k=.sha256"
+            ]
+          };
 
-            t.end();
+        dataAccess.publishPublicChessMessage(invite, (err, result) => {
+            const gameId = result.key;
+
+            const message = {
+                "root": gameId,
+                "type": "chess_chat",
+                "msg": "testaroonie"
+            };
+    
+            dataAccess.publishPrivateChessMessage(message, [`@${keys.public}`], (err, result) => {
+                t.equals(err, null, "Private message should be published successfully");
+
+                // Should be an encrypted payload
+                t.assert(typeof(result.value.content) === "string");
+    
+                pull(dataAccess.allGameMessages(gameId, false), pull.collect((err, data) => {
+                    t.equals(data.length, 2, "There should be two messages associated with the game ID");
+
+                    // Should be decryptable because we included ourselves in the recipients
+                    t.equals(data[1].value.content.msg, "testaroonie")
+
+                    t.end();
+                }))
+                
+    
+            })
         })
+
+
+       
 
     });
 

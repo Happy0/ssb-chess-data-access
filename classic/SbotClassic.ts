@@ -44,10 +44,10 @@ export class SbotClassic implements Accesser {
         })
     }
 
-    publishPublicChessMessage(payload: any, cb: (err: any) => any): void {
+    publishPublicChessMessage(payload: any, cb: (err: any, result: any) => any): void {
         return this.sbot.publish(payload, cb);
     }
-    publishPrivateChessMessage(payload: any, participants: String[], cb: (err: any) => any): void {
+    publishPrivateChessMessage(payload: any, participants: String[], cb: (err: any, result: any) => any): void {
         return this.sbot.private.publish(payload, participants, cb);
     }
     getInviteMessage(gameId: String, cb: (err: any, result: any) => any): void {
