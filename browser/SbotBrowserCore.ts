@@ -35,7 +35,7 @@ export class SbotBrowserCore implements Accesser {
     }
     publishPrivateChessMessage(payload: any, participants: String[], cb: (err: any) => any): void {
         const content = this.sbot.box(payload, participants.map((x) => x.substr(1)));
-        this.sbot.publish(content, cb);
+        this.sbot.net.publish(content, cb);
     }
     getInviteMessage(gameId: String, cb: (err: any, result: any) => any): void {
         this.sbot.db.get(gameId, cb);

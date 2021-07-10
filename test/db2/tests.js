@@ -62,8 +62,22 @@ setTimeout(() => {
                 t.end();
             }))
         })
+    });
 
-    })
+    test('publishPrivateChessMessage', (t) => {
+        const message = {
+            "root": "%Wrb+cksaF2mErMOd9gQH38LehEj/HUZWKc9FHrafTaY=.sha256",
+            "type": "chess_chat",
+            "msg": "testaroonie"
+        };
+
+        dataAccess.publishPrivateChessMessage(message, [`@${keys.public}`], (err) => {
+            t.equals(err, null, "Private message should be published successfully");
+
+            t.end();
+        })
+
+    });
 
 
 
