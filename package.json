@@ -5,7 +5,8 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "typescript": "tsc"
+    "typescript": "tsc",
+    "test": "tape test/db2/*.js | tap-spec"
   },
   "repository": {
     "type": "git",
@@ -20,7 +21,13 @@
   "devDependencies": {
     "tslint": "^5.12.1",
     "ssb-client": "^4.9.0",
-    "typescript": "^3.3.3"
+    "typescript": "^3.3.3",
+    "tape": "^5.2.2",
+    "rimraf": "^3.0.2",
+    "mkdirp": "^1.0.4",
+    "ssb-keys": "^8.1.0",
+    "tap-spec": "^5.0.0",
+    "ssb-browser-core": "^11.0.2"
   },
   "dependencies": {
     "pull-abortable": "^4.1.1",
