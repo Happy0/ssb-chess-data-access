@@ -8,6 +8,7 @@ const path = require('path')
 const testDbDir = '/tmp/ssb-chess-data-access-db2'
 
 const BrowserCore = require('ssb-browser-core/core');
+const pull = require('pull-stream');
 
 rimraf.sync(testDbDir);
 mkdirp.sync(testDbDir);
@@ -34,34 +35,33 @@ setTimeout(() => {
     });
 
     test('publishPublicChessMessage', (t) => {
-        const move = {
-            "type": "chess_move",
-            "ply": 21,
-            "root": "%l3v+aYB+hevqsU1ei4XnNNzJWbLgz3y/g8SQxx+gcMA=.sha256",
-            "orig": "f1",
-            "dest": "e1",
-            "pgnMove": "Rfe1",
-            "fen": "2kr3r/ppp1q1pp/2n1bn2/2bp1p2/8/1PNP1N2/PBPQBPPP/R3R1K1 b - - 8 11",
-            "branch": "%Lmu7YVWzwebVsXtGwW+SplWUTf8LcVljKgBtaHC3yD8=.sha256"
-        };
+        const invite = {
+            "type": "chess_invite",
+            "inviting": "@NeB4q4Hy9IiMxs5L08oevEhivxW+/aDu/s/0SkNayi0=.ed25519",
+            "myColor": "black",
+            "branch": [
+              "%5cYKNR0PEz793N1Rtli93IcuGDZHsHDu+06Ii+OEIPw=.sha256",
+              "%vcNed83YdIA0mF0H/w5NFyy1Z/PazyomsWVhzWDnru8=.sha256",
+              "%+pVoEqGX3tYSKbCpvEa7oto2NvPxR1/UAIv+i+cUPRA=.sha256",
+              "%01ksKwoAAkrY+bjYdP1WCgtZHHGGcZ8bXmEoYnUlyn4=.sha256",
+              "%9oK3ltfnvH9/7h5sxD6Cu+IYoSXcOddTMPJ5L6dLsUM=.sha256",
+              "%ldUBk14tkOXNoLECOP9BYDyCyBh4p9KvfHAIzpwcK9k=.sha256"
+            ]
+          };
 
-        dataAccess.publishPublicChessMessage(move, (err) => {
-            t.equals(err, null, "Should not result in error");
-            const { author, where, descending, toCallback } = SSB.dbOperators;
-
-            SSB.db.query(
-                where(
-                    author(`@${keys.public}`)
-                ),
-                descending(),
-                toCallback((err, msgs) => {
-                    t.assert(msgs.length, 1, "There should only be one message in the user's feed");
-
-                    t.end();
-                })
-                
-            )
-        });
+        dataAccess.publishPublicChessMessage(invite, (err) => {
+            t.equals(err, null, "There should be no error on publishing");
+            
+            const myIdent = `@${keys.public}`
+            console.log("me: " + myIdent)
+            const messagesSource = dataAccess.chessMessagesForPlayerGames(myIdent, {live: false});
+    
+            pull(messagesSource, pull.collect((err, results) => {
+                t.equals(err, null, "There should be no errors when finding user messages");
+                t.equals(results.length, 1, "There should be one message in the feed")
+                t.end();
+            }))
+        })
 
     })
 

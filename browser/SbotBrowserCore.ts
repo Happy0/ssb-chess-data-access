@@ -269,12 +269,12 @@ export class SbotBrowserCore implements Accesser {
     chessMessageStreamForPlayerGames(playerId: string, playerShouldBeIn: boolean, opts: any) {
         let {where, or, and, gte, type, descending, toPullStream, live} = this.sbot.dbOperators;
         const messageTypes = opts && opts.messageTypes ? opts.messageTypes : this.chessTypeMessages;
-        const since = opts ? opts.since : 0;
+        const since = (opts && opts.since) ? opts.since : 0;
         const reverse = opts ? opts.reverse : false;
 
         const liveStream = (opts && (opts.live !== undefined && opts.live !== null)) ? opts.live : true;
 
-        const getSourceStream = (stayLive: boolean) => {
+        const getSourceStream = (livesOnly: boolean) => {
             if (reverse) {
                 return this.sbot.db.query(
                     where(
@@ -285,7 +285,7 @@ export class SbotBrowserCore implements Accesser {
                             gte(since, 'timestamp')
                         )
                     ),
-                    live({old: !stayLive, live:stayLive}),
+                    livesOnly ?  live() : null,
                     descending(),
                     toPullStream()
                 )
@@ -299,7 +299,7 @@ export class SbotBrowserCore implements Accesser {
                             gte(since, 'timestamp')
                         )
                     ),
-                    live({old: !stayLive, live:stayLive}),
+                    livesOnly ?  live() : null,
                     toPullStream()
                 )
             }
@@ -346,7 +346,7 @@ export class SbotBrowserCore implements Accesser {
         }
 
         const sourceStream = 
-            liveStream ? getSourceStream(false) : this.makeLiveStream(getSourceStream(false), getSourceStream(true))
+            liveStream ? this.makeLiveStream(getSourceStream(false), getSourceStream(true)) : getSourceStream(false)
 
         return pull(
             sourceStream,
