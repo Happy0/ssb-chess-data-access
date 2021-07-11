@@ -512,7 +512,69 @@ setTimeout(() => {
     });
 
     test("chessInviteAcceptMessages (live)", (t) => {
-        t.end();
+        const db = SSB.db;
+        const time = Date.now();
+        const exampleStatuses = require('./data/example_statuses.json');
+        let s = validate.initial();
+        const keys = [];
+
+        const nonLive = exampleStatuses.slice(0,3);
+        const lives = exampleStatuses.slice(3,10);
+
+        nonLive.forEach(
+            (msg, index) => {
+                const playerKey = ssbKeys.loadOrCreateSync(path.join(testDbDir, 'live_invite_messages_key' + index));
+                keys.push(`@${playerKey.public}`)
+
+                s = validate.appendNew(s, null, playerKey, msg.value.content, time + index + 1);
+            }
+        );
+
+        pull(
+            pull.values(s.queue),
+            pull.asyncMap((kvt, cb) => {
+                db.addOOO(kvt.value, cb)
+            }),
+            pull.collect((err, result) => {
+                db.onDrain(() => {
+
+                    const source = dataAccess.chessInviteAcceptMessages(true);
+
+                    const fromTestOnly = pull.filter(msg => msg.sync || keys.indexOf(msg.value.author) !== -1); 
+
+                    pull(source, fromTestOnly, pull.take(3), pull.collect((err, results) => {
+                        console.log(results)
+                        const withoutSync = results.filter(e => !e.sync);
+
+                        t.assert(results.find(e => e.sync) != null); 
+
+                        t.assert(results[1].sync == true);
+
+                        t.deepEqual(withoutSync.length, 2, "There should be 4 invite accept messages");
+
+                        t.end();
+                    }));
+
+                    lives.forEach(
+                        (msg, index) => {
+                            const playerKey = ssbKeys.loadOrCreateSync(path.join(testDbDir, 'live_invite_accept_messages_key' + index));
+                            keys.push(`@${playerKey.public}`)
+            
+                            s = validate.appendNew(s, null, playerKey, msg.value.content, time + index + 1);
+                        }
+                    );
+
+                    pull(
+                        pull.values(s.queue),
+                        pull.asyncMap((kvt, cb) => {
+                            db.addOOO(kvt.value, cb)
+                        }),
+                        pull.drain(()=>{})
+                    )
+
+                })
+            })
+        )
     })
 
 }, 2000);
