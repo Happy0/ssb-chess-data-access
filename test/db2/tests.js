@@ -414,9 +414,12 @@ setTimeout(() => {
                     const fromTestOnly = pull.filter(msg => msg.sync || keys.indexOf(msg.value.author) !== -1); 
 
                     pull(source, fromTestOnly, pull.take(5), pull.collect((err, results) => {
+                        console.log(results)
                         const withoutSync = results.filter(e => !e.sync);
 
                         t.assert(results.find(e => e.sync) != null); 
+
+                        t.assert(results[2].sync == true);
 
                         t.deepEqual(withoutSync.length, 4, "There should be 4 invite messages");
 
@@ -507,6 +510,10 @@ setTimeout(() => {
             })
         )
     });
+
+    test("chessInviteAcceptMessages (live)", (t) => {
+        t.end();
+    })
 
 }, 2000);
 
