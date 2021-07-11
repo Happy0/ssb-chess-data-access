@@ -18,9 +18,13 @@ Client( (err, ssbClient) => {
     //sbot.publishPublic(msg, (err, result) => {console.log(err) ; console.log(result)})
     //sbot.publishPrivate(msg, ["@RJ09Kfs3neEZPrbpbWVDxkN92x9moe3aPusOMOc4S2I=.ed25519"], (err, result)=> {console.log(err); console.log(result)});
 
-    //pull(sbot.allGameMessages('%QycN67xQP1gHB9+LIct4KGmwDTBNhmUa1QT0TFshZvA=.sha256', true), pull.drain(msg => console.log(msg)));
+    pull(
+        sbot.allGameMessages('%QycN67xQP1gHB9+LIct4KGmwDTBNhmUa1QT0TFshZvA=.sha256', false),
+        pull.filter(msg => {return msg.value && msg.value.content.type !== "chess_chat"}),
+        pull.collect((ee, msgs) => console.log(JSON.stringify(msgs)))
+    );
 
-    pull(sbot.chessEndMessages(true, true), pull.drain(msg => console.log(msg)))
+    //pull(sbot.chessEndMessages(true, true), pull.drain(msg => console.log(msg)))
 
    // pull(sbot.logStream(true, 1623441679136), pull.drain(msg => console.log(msg)))
 

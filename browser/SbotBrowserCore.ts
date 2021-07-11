@@ -51,7 +51,12 @@ export class SbotBrowserCore implements Accesser {
             )
         }
 
-        const originalMessage = pull(pull.once(gameId), pull.asyncMap(this.sbot.db.get));
+        const originalMessage = pull(pull.once(gameId), pull.asyncMap(this.sbot.db.get), pull.map(msg => {
+            msg.value = {};
+            msg.value.content = msg.content;
+            return msg;
+        }));
+        
         const oldLinks = makeStream(false);
 
         if (!keepLive) {

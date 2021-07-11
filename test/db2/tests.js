@@ -103,17 +103,22 @@ setTimeout(() => {
 
                     t.end();
                 }))
-                
-    
             })
         })
-
-
-       
-
     });
 
+    test("allGameMessages (non-live)", (t) => {
+        const player1 = ssbKeys.loadOrCreateSync(path.join(testDbDir, 'secret2'));
+        const player2 = ssbKeys.loadOrCreateSync(path.join(testDbDir, 'secret3'));
 
+        //WIP
+        
+        t.end();
+
+
+
+
+    });
 
 }, 2000);
 

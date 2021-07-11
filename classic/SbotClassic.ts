@@ -55,7 +55,11 @@ export class SbotClassic implements Accesser {
     }
     allGameMessages(gameId: String, live: Boolean) {
 
-        const originalMessage = pull(pull.once(gameId), pull.asyncMap(this.sbot.get))
+        const originalMessage = pull(pull.once(gameId), pull.asyncMap(this.sbot.get), pull.map(msg => {
+            msg.value = {};
+            msg.value.content = msg.content;
+            return msg;
+        }));
 
         const backlinks = pull(
             this.sbot.backlinks.read({
@@ -65,7 +69,7 @@ export class SbotClassic implements Accesser {
             })
         );
 
-        return pull(cat([originalMessage, backlinks]));
+        return cat([originalMessage, backlinks]);
     }
 
     chessInviteMessages(live: boolean) {
