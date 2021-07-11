@@ -414,10 +414,9 @@ setTimeout(() => {
                     const fromTestOnly = pull.filter(msg => msg.sync || keys.indexOf(msg.value.author) !== -1); 
 
                     pull(source, fromTestOnly, pull.take(5), pull.collect((err, results) => {
-                        const sync = results[2];
                         const withoutSync = results.filter(e => !e.sync);
 
-                        t.deepEqual(sync, {sync: true}, "Sync message should be where expected");
+                        t.assert(results.find(e => e.sync) != null); 
 
                         t.deepEqual(withoutSync.length, 4, "There should be 4 invite messages");
 
