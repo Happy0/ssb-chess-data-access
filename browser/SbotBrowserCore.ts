@@ -24,7 +24,7 @@ export class SbotBrowserCore implements Accesser {
     ];
 
     syncMsg = {sync: true}
-    syncMsgStream = pull.once(this.syncMsg);
+    syncMsgStream = () => pull.once(this.syncMsg);
 
     whoAmI(cb: (err: any, result: any) => void): void {
         const myId = this.sbot.net.id
@@ -56,15 +56,16 @@ export class SbotBrowserCore implements Accesser {
             msg.value.content = msg.content;
             return msg;
         }));
-        
+
         const oldLinks = makeStream(false);
 
         if (!keepLive) {
             return pull(cat([originalMessage, oldLinks]));
         } else {
             const newLinks = makeStream(true);
-            const backlinks = this.makeLiveStream(oldLinks, newLinks)
-            return pull(cat([originalMessage, backlinks, this.syncMsg, newLinks]))            
+            const allBacklinks = this.makeLiveStream(oldLinks, newLinks);
+
+            return pull(cat([originalMessage, allBacklinks]));        
         }
     }
 
@@ -242,11 +243,12 @@ export class SbotBrowserCore implements Accesser {
         const abortable1 = Abortable();
         const abortable2 = Abortable(() => abortable1.abort());
         
-        const livePushable = Pushable();
+        const livePushable = Pushable(() => console.log("closed!"));
 
-        pull(liveStream, abortable2, pull.drain(msg => livePushable.push(msg)));
+        pull(liveStream, pull.drain(msg => livePushable.push(msg)));
 
         const olds = pull(oldStream, pull.map(msg => {
+            console.log(msg);
             timestamp = msg.timestamp;
             key = msg.key;
             return msg;
@@ -257,7 +259,7 @@ export class SbotBrowserCore implements Accesser {
             pull.filter(msg => msg.timestamp > timestamp || (msg.timestamp === timestamp && msg.key !== key))
         );
 
-        return cat([olds, this.syncMsgStream, abortable1, news])                
+        return cat([olds, this.syncMsgStream(), news]) ;
     }
 
     getAboutStream(id) {

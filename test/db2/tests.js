@@ -139,7 +139,7 @@ setTimeout(() => {
                     "author": "@fulano",
                     "content": {
                         "type": "post",
-                        "msg": "Quien quieres echar el shal conmigo?"
+                        "msg": "Quien quiere echar el shal conmigo?"
                     }
                 }
             }
@@ -194,9 +194,7 @@ setTimeout(() => {
                                 const expectedMessagesContent = gameMessages.map(e => e.value.content);
                                 const actualMessagesContent = msgs.map(e => e.value.content);
 
-                                
                                 t.deepEqual(actualMessagesContent, expectedMessagesContent, "Game messages should be in expected order");
-
 
                                 t.end();
                             }))
@@ -207,8 +205,100 @@ setTimeout(() => {
         );
     });
 
-    test("allGameMessages (live)", (t) => {
-        t.end();
+    test.only("allGameMessages (live)", (t) => {
+        const player1 = ssbKeys.loadOrCreateSync(path.join(testDbDir, 'secret4'));
+        const player2 = ssbKeys.loadOrCreateSync(path.join(testDbDir, 'secret5'));
+
+        let s = validate.initial()
+
+        const gameMessages = require('./data/example_game.json');
+        const author1 = "@RJ09Kfs3neEZPrbpbWVDxkN92x9moe3aPusOMOc4S2I=.ed25519";
+
+        const inviteMsg = gameMessages[0].value.content;
+
+        const time = Date.now();
+        
+        s = validate.appendNew(s, null, player1, inviteMsg, time);
+
+        const makeIrrelevantMessages = () => {
+            const msg = {
+                "value": {
+                    "author": "@weejimmy",
+                    "content": {
+                        "type": "post",
+                        "msg": "I like stuff and things. Who else likes stuff and things?"
+                    }
+                }
+            }
+
+            const msg2 =  {
+                "value": {
+                    "author": "@fulano",
+                    "content": {
+                        "type": "post",
+                        "msg": "Quien quiere echar el shal conmigo?"
+                    }
+                }
+            }
+
+            return [msg, msg2];
+        }
+
+        pull(
+            pull.values(s.queue),
+            pull.asyncMap((kvt, cb) => SSB.db.add(kvt.value, cb)),
+            pull.collect((err, msgs) => {
+                t.error(err, "There shouldn't be an error when creating test data");
+                t.equals(msgs.length, 1, "There should be one message");
+
+                const gameId = msgs[0].key;
+                
+                const restOfGameMessages = gameMessages.slice(1);
+
+                const irrelevantMessages = makeIrrelevantMessages();
+
+                restOfGameMessages.concat(irrelevantMessages).forEach((msg, index) => {
+                    const playerKey = msg.value.author === author1 ? player1 : player2;
+
+                    const content = msg.value.content;
+
+                    if (msg.value.content.type != "post") {
+                        // Set the gameID to the newly auto-generated one so it links back
+                        msg.value.content.root = gameId;
+                    }
+
+                    s = validate.appendNew(s, null, playerKey, content, time + index + 1);
+                });
+
+                const db = SSB.db;
+
+                const allGameMessages = dataAccess.allGameMessages(gameId, true);
+
+                // Because this stream is live, we end it after the expected 51 messages arrived (game messages + 'sync' messages.)
+                pull(allGameMessages, pull.take(51), pull.collect((err, msgs) => {
+                    console.log(msgs)
+
+                    const expectedMessagesContent = gameMessages.map(e => e.value.content);
+                    const actualMessagesContent = msgs.filter(e => !e.sync).map(e => e.value.content);
+
+                    t.deepEqual(actualMessagesContent, expectedMessagesContent, "Game messages should be in expected order");
+
+                    t.end();
+                }));
+
+                pull(
+                    pull.values(s.queue),
+                    pull.asyncMap((kvt, cb) => {
+                        db.addOOO(kvt.value, cb)
+                    }),
+                    pull.collect((err, results)=> {
+                        if (err) {
+                            t.error(err);
+                        }
+                    })
+                )
+            })
+        );
 
     });
 
