@@ -84,7 +84,7 @@ export class SbotBrowserCore implements Accesser {
                 where(
                     type('chess_invite')
                 ),
-                live({old: !liveOnly, live:liveOnly}),
+                liveOnly ? live() : null,
                 toPullStream()
             )
         }

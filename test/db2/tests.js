@@ -130,7 +130,7 @@ setTimeout(() => {
                     "author": "@weejimmy",
                     "content": {
                         "type": "post",
-                        "msg": "I like stuff and things. Who else likes stuff and things?"
+                        "msg": "Wit youse aw sayin' tae it?"
                     }
                 }
             }
@@ -140,7 +140,7 @@ setTimeout(() => {
                     "author": "@fulano",
                     "content": {
                         "type": "post",
-                        "msg": "Quien quiere echar el shal conmigo?"
+                        "msg": "Quien quiere echar el chal conmigo?"
                     }
                 }
             }
@@ -229,7 +229,7 @@ setTimeout(() => {
                     "author": "@weejimmy",
                     "content": {
                         "type": "post",
-                        "msg": "I like stuff and things. Who else likes stuff and things?"
+                        "msg": "Wit youse aw sayin' tae it?"
                     }
                 }
             }
@@ -239,7 +239,7 @@ setTimeout(() => {
                     "author": "@fulano",
                     "content": {
                         "type": "post",
-                        "msg": "Quien quiere echar el shal conmigo?"
+                        "msg": "Quien quiere echar el chal conmigo?"
                     }
                 }
             }
@@ -330,7 +330,56 @@ setTimeout(() => {
 
     });
 
+    test.only("chessInviteMessages (non-live)", (t) => {
+        const db = SSB.db;
+        const time = Date.now();
 
+        const exampleStatuses = require('./data/example_statuses.json');
+        const firstTen = exampleStatuses.splice(0,10);
+
+        let s = validate.initial();
+
+        firstTen.forEach(
+            (msg, index) => {
+                const playerKey = ssbKeys.loadOrCreateSync(path.join(testDbDir, 'invite_messages_key' + index));
+                s = validate.appendNew(s, null, playerKey, msg.value.content, time + index + 1);
+            }
+        );
+
+        pull(
+            pull.values(s.queue),
+            pull.asyncMap((kvt, cb) => {
+                db.addOOO(kvt.value, cb)
+            }),
+            pull.collect((err, results)=> {
+              //  console.log(results.map(e => e.value.content))
+                if (err) {
+                    t.error(err);
+                }
+
+                db.onDrain(() => {
+                    const source = dataAccess.chessInviteMessages(false);
+
+                    pull(source, pull.collect(
+                        (err, results) => {
+                            t.assert(results.length > 0);
+
+                            t.end();
+                        }
+                    ));
+
+
+                })
+
+
+            })
+        )
+
+
+
+
+
+    })
 
 
 }, 2000);
