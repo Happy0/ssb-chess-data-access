@@ -111,8 +111,8 @@ setTimeout(() => {
         const player1 = ssbKeys.loadOrCreateSync(path.join(testDbDir, 'secret2'));
         const player2 = ssbKeys.loadOrCreateSync(path.join(testDbDir, 'secret3'));
 
-        //WIP
-        
+        //WIP... Load messages from example_game.json 
+
         t.end();
 
 
