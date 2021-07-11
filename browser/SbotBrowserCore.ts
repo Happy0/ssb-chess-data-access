@@ -245,11 +245,9 @@ export class SbotBrowserCore implements Accesser {
             abortable.abort();
         });
 
-
         pull(liveStream, abortable, pull.drain(msg => livePushable.push(msg)));
 
         const olds = pull(oldStream, pull.map(msg => {
-            console.log(msg);
             timestamp = msg.timestamp;
             key = msg.key;
             return msg;

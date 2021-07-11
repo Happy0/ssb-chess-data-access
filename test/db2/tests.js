@@ -10,6 +10,7 @@ const testDbDir = '/tmp/ssb-chess-data-access-db2'
 
 const BrowserCore = require('ssb-browser-core/core');
 const pull = require('pull-stream');
+const { init } = require('ssb-browser-core/net');
 
 rimraf.sync(testDbDir);
 mkdirp.sync(testDbDir);
@@ -205,7 +206,9 @@ setTimeout(() => {
         );
     });
 
-    test.only("allGameMessages (live)", (t) => {
+    test("allGameMessages (live)", (t) => {
+        const db = SSB.db;
+
         const player1 = ssbKeys.loadOrCreateSync(path.join(testDbDir, 'secret4'));
         const player2 = ssbKeys.loadOrCreateSync(path.join(testDbDir, 'secret5'));
 
@@ -244,47 +247,33 @@ setTimeout(() => {
             return [msg, msg2];
         }
 
+        const appendMessages = (s, messages, gameId) => {
+
+            messages.forEach((msg, index) => {
+                const playerKey = msg.value.author === author1 ? player1 : player2;
+
+                const content = msg.value.content;
+
+                if (msg.value.content.type != "post") {
+                    // Set the gameID to the newly auto-generated one so it links back
+                    msg.value.content.root = gameId;
+                }
+
+                s = validate.appendNew(s, null, playerKey, content, time + index + 1);
+            });
+        }
+
         pull(
             pull.values(s.queue),
             pull.asyncMap((kvt, cb) => SSB.db.add(kvt.value, cb)),
             pull.collect((err, msgs) => {
                 t.error(err, "There shouldn't be an error when creating test data");
                 t.equals(msgs.length, 1, "There should be one message");
-
                 const gameId = msgs[0].key;
-                
                 const restOfGameMessages = gameMessages.slice(1);
 
-                const irrelevantMessages = makeIrrelevantMessages();
-
-                restOfGameMessages.concat(irrelevantMessages).forEach((msg, index) => {
-                    const playerKey = msg.value.author === author1 ? player1 : player2;
-
-                    const content = msg.value.content;
-
-                    if (msg.value.content.type != "post") {
-                        // Set the gameID to the newly auto-generated one so it links back
-                        msg.value.content.root = gameId;
-                    }
-
-                    s = validate.appendNew(s, null, playerKey, content, time + index + 1);
-                });
-
-                const db = SSB.db;
-
-                const allGameMessages = dataAccess.allGameMessages(gameId, true);
-
-                // Because this stream is live, we end it after the expected 51 messages arrived (game messages + 'sync' messages.)
-                pull(allGameMessages, pull.take(51), pull.collect((err, msgs) => {
-                    console.log(msgs)
-
-                    const expectedMessagesContent = gameMessages.map(e => e.value.content);
-                    const actualMessagesContent = msgs.filter(e => !e.sync).map(e => e.value.content);
-
-                    t.deepEqual(actualMessagesContent, expectedMessagesContent, "Game messages should be in expected order");
-
-                    t.end();
-                }));
+                const initial = restOfGameMessages.slice(0, 4);
+                appendMessages(s, initial, gameId);
 
                 pull(
                     pull.values(s.queue),
@@ -292,11 +281,50 @@ setTimeout(() => {
                         db.addOOO(kvt.value, cb)
                     }),
                     pull.collect((err, results)=> {
-                        if (err) {
-                            t.error(err);
-                        }
+                        db.onDrain(() => {
+                            // These are the messages that will arrive after the initial database drain
+                            const liveMessages = restOfGameMessages.slice(4);
+
+                            const allGameMessages = dataAccess.allGameMessages(gameId, true);
+
+                            // Because this stream is live, we end it after the expected 51 messages arrived (game messages + 'sync' messages.)
+                            pull(allGameMessages, pull.take(51), pull.collect((err, msgs) => {
+                                const expectedSyncPosition = msgs[5];
+
+                                // The messages after 'sync' are the live ones
+                                t.deepEqual(expectedSyncPosition, {sync: true});
+
+            
+                                const expectedMessagesContent = gameMessages.map(e => e.value.content);
+                                const actualMessagesContent = msgs.filter(e => !e.sync).map(e => e.value.content);
+            
+                                t.deepEqual(actualMessagesContent, expectedMessagesContent, "Game messages should be in expected order");
+            
+                                t.end();
+                            }));
+            
+                            const irrelevantMessages = makeIrrelevantMessages();
+                            const rest = liveMessages.concat(irrelevantMessages);
+            
+                            appendMessages(s, rest, gameId);
+            
+                            pull(
+                                pull.values(s.queue),
+                                pull.asyncMap((kvt, cb) => {
+                                    db.addOOO(kvt.value, cb)
+                                }),
+                                pull.collect((err, results)=> {
+                                    if (err) {
+                                        t.error(err);
+                                    }
+                                })
+                            )
+                        })
+
+
                     })
                 )
+
             })
         );
 
