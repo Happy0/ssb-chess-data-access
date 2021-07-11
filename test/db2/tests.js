@@ -4,6 +4,7 @@ const SbotBrowserCore = require('../../lib/index').SbotBrowserCore;
 const rimraf = require('rimraf')
 const mkdirp = require('mkdirp')
 const path = require('path')
+const validate = require('ssb-validate');
 
 const testDbDir = '/tmp/ssb-chess-data-access-db2'
 
@@ -111,14 +112,104 @@ setTimeout(() => {
         const player1 = ssbKeys.loadOrCreateSync(path.join(testDbDir, 'secret2'));
         const player2 = ssbKeys.loadOrCreateSync(path.join(testDbDir, 'secret3'));
 
+        let s = validate.initial()
+
+        const gameMessages = require('./data/example_game.json');
+        const author1 = "@RJ09Kfs3neEZPrbpbWVDxkN92x9moe3aPusOMOc4S2I=.ed25519";
+
+        const inviteMsg = gameMessages[0].value.content;
+
+        const time = Date.now();
+        
+        s = validate.appendNew(s, null, player1, inviteMsg, time);
+
+        pull(
+            pull.values(s.queue),
+            pull.asyncMap((kvt, cb) => SSB.db.add(kvt.value, cb)),
+            pull.collect((err, msgs) => {
+                t.error(err, "There shouldn't be an error when creating test data");
+                t.equals(msgs.length, 1, "There should be one message");
+
+                const gameId = msgs[0].key;
+                
+                const restOfGameMessages = gameMessages.slice(1);
+                restOfGameMessages.forEach((msg, index) => {
+                    const playerKey = msg.value.author === author1 ? player1 : player2;
+
+                    const content = msg.value.content;
+
+                    // Set the gameID to the newly auto-generated one
+                    msg.value.content.root = gameId;
+
+                    s = validate.appendNew(s, null, playerKey, content, time + index + 1);
+                });
+
+                const db = SSB.db;
+               // console.log(db)
+
+                pull(
+                    pull.values(s.queue),
+                    pull.asyncMap((kvt, cb) => {
+                     // console.log(kvt);
+
+                        db.addOOO(kvt.value, cb)
+                    }),
+                    pull.collect((err, results)=> {
+                        t.error(err);
+
+                        db.onDrain(() => {
+                            const allGameMessages = dataAccess.allGameMessages(gameId, false);
+
+                            pull(allGameMessages, pull.collect((err, msgs) => {
+
+                                const expectedMessagesContent = gameMessages.map(e => e.value.content);
+                                const actualMessagesContent = msgs.map(e => e.value.content);
+
+                                
+                                t.deepEqual(actualMessagesContent, expectedMessagesContent, "Game messages should be in expected order");
+
+
+                                t.end();
+                            }))
+
+
+                        })
+
+                    })
+                )
+
+
+      
+
+            })
+        );
+
+
+
+
+        
+
+       
+
+
+
+
+
         //WIP... Load messages from example_game.json 
 
-        t.end();
 
 
 
 
     });
+
+    test("allGameMessages (live)", (t) => {
+        t.end();
+
+    });
+
+
+
 
 }, 2000);
 

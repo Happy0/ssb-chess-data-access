@@ -27,7 +27,8 @@
     "mkdirp": "^1.0.4",
     "ssb-keys": "^8.1.0",
     "tap-spec": "^5.0.0",
-    "ssb-browser-core": "^11.0.2"
+    "ssb-browser-core": "^11.0.2",
+    "ssb-validate": "^4.1.4"
   },
   "dependencies": {
     "pull-abortable": "^4.1.1",
