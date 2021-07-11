@@ -330,8 +330,12 @@ setTimeout(() => {
 
     });
 
-    test.only("chessInviteMessages (non-live)", (t) => {
+    test("chessInviteMessages (non-live)", (t) => {
+
         const db = SSB.db;
+
+        db.clearIndexes();
+
         const time = Date.now();
 
         const exampleStatuses = require('./data/example_statuses.json');
@@ -339,9 +343,13 @@ setTimeout(() => {
 
         let s = validate.initial();
 
+        const keys = [];
+
         firstTen.forEach(
             (msg, index) => {
                 const playerKey = ssbKeys.loadOrCreateSync(path.join(testDbDir, 'invite_messages_key' + index));
+                keys.push(`@${playerKey.public}`)
+
                 s = validate.appendNew(s, null, playerKey, msg.value.content, time + index + 1);
             }
         );
@@ -360,9 +368,14 @@ setTimeout(() => {
                 db.onDrain(() => {
                     const source = dataAccess.chessInviteMessages(false);
 
-                    pull(source, pull.collect(
+                    // I haven't found a way to delete DB and start again so doing this for now
+                    const fromTestOnly = pull.filter(msg => keys.indexOf(msg.value.author) !== -1);
+
+                    pull(source, fromTestOnly, pull.collect(
                         (err, results) => {
-                            t.assert(results.length > 0);
+                            console.log(err)
+
+                            t.equals(results.length, 4, "there should be 4 invites");
 
                             t.end();
                         }
@@ -374,12 +387,7 @@ setTimeout(() => {
 
             })
         )
-
-
-
-
-
-    })
+    });
 
 
 }, 2000);
