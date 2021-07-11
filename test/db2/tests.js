@@ -123,6 +123,30 @@ setTimeout(() => {
         
         s = validate.appendNew(s, null, player1, inviteMsg, time);
 
+        const makeIrrelevantMessages = () => {
+            const msg = {
+                "value": {
+                    "author": "@weejimmy",
+                    "content": {
+                        "type": "post",
+                        "msg": "I like stuff and things. Who else likes stuff and things?"
+                    }
+                }
+            }
+
+            const msg2 =  {
+                "value": {
+                    "author": "@fulano",
+                    "content": {
+                        "type": "post",
+                        "msg": "Quien quieres echar el shal conmigo?"
+                    }
+                }
+            }
+
+            return [msg, msg2];
+        }
+
         pull(
             pull.values(s.queue),
             pull.asyncMap((kvt, cb) => SSB.db.add(kvt.value, cb)),
@@ -133,13 +157,18 @@ setTimeout(() => {
                 const gameId = msgs[0].key;
                 
                 const restOfGameMessages = gameMessages.slice(1);
-                restOfGameMessages.forEach((msg, index) => {
+
+                const irrelevantMessages = makeIrrelevantMessages();
+
+                restOfGameMessages.concat(irrelevantMessages).forEach((msg, index) => {
                     const playerKey = msg.value.author === author1 ? player1 : player2;
 
                     const content = msg.value.content;
 
-                    // Set the gameID to the newly auto-generated one
-                    msg.value.content.root = gameId;
+                    if (msg.value.content.type != "post") {
+                        // Set the gameID to the newly auto-generated one so it links back
+                        msg.value.content.root = gameId;
+                    }
 
                     s = validate.appendNew(s, null, playerKey, content, time + index + 1);
                 });
@@ -171,36 +200,11 @@ setTimeout(() => {
 
                                 t.end();
                             }))
-
-
                         })
-
                     })
                 )
-
-
-      
-
             })
         );
-
-
-
-
-        
-
-       
-
-
-
-
-
-        //WIP... Load messages from example_game.json 
-
-
-
-
-
     });
 
     test("allGameMessages (live)", (t) => {
