@@ -239,13 +239,14 @@ export class SbotBrowserCore implements Accesser {
     makeLiveStream(oldStream, liveStream) {
         let timestamp = 0;
         let key = null;
-
-        const abortable1 = Abortable();
-        const abortable2 = Abortable(() => abortable1.abort());
         
-        const livePushable = Pushable(() => console.log("closed!"));
+        const abortable = Abortable();
+        const livePushable = Pushable(() => {
+            abortable.abort();
+        });
 
-        pull(liveStream, pull.drain(msg => livePushable.push(msg)));
+
+        pull(liveStream, abortable, pull.drain(msg => livePushable.push(msg)));
 
         const olds = pull(oldStream, pull.map(msg => {
             console.log(msg);
@@ -255,8 +256,9 @@ export class SbotBrowserCore implements Accesser {
         }));
 
         // Don't repeat any we already seen in the old stream...
-        const news = pull(livePushable, 
-            pull.filter(msg => msg.timestamp > timestamp || (msg.timestamp === timestamp && msg.key !== key))
+        const news = pull(livePushable,
+            pull.filter(msg => msg.timestamp > timestamp || (msg.timestamp === timestamp && msg.key !== key)
+            )
         );
 
         return cat([olds, this.syncMsgStream(), news]) ;
