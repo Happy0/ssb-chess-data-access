@@ -333,9 +333,6 @@ setTimeout(() => {
     test("chessInviteMessages (non-live)", (t) => {
 
         const db = SSB.db;
-
-        db.clearIndexes();
-
         const time = Date.now();
 
         const exampleStatuses = require('./data/example_statuses.json');
@@ -380,15 +377,76 @@ setTimeout(() => {
                             t.end();
                         }
                     ));
-
-
                 })
-
-
             })
         )
     });
 
+    test("chessInviteMessages (live)", (t) => {
+        const db = SSB.db;
+        const time = Date.now();
+        const exampleStatuses = require('./data/example_statuses.json');
+        let s = validate.initial();
+        const keys = [];
+
+        const nonLive = exampleStatuses.splice(0,3);
+        const lives = exampleStatuses.splice(3,10);
+
+        nonLive.forEach(
+            (msg, index) => {
+                const playerKey = ssbKeys.loadOrCreateSync(path.join(testDbDir, 'live_invite_messages_key' + index));
+                keys.push(`@${playerKey.public}`)
+
+                s = validate.appendNew(s, null, playerKey, msg.value.content, time + index + 1);
+            }
+        );
+
+        pull(
+            pull.values(s.queue),
+            pull.asyncMap((kvt, cb) => {
+                db.addOOO(kvt.value, cb)
+            }),
+            pull.collect((err, result) => {
+                db.onDrain(() => {
+
+                    const source = dataAccess.chessInviteMessages(true);
+
+                    const fromTestOnly = pull.filter(msg => msg.sync || keys.indexOf(msg.value.author) !== -1); 
+
+                    pull(source, fromTestOnly, pull.take(5), pull.collect((err, results) => {
+                        const sync = results[2];
+                        const withoutSync = results.filter(e => !e.sync);
+
+                        t.deepEqual(sync, {sync: true}, "Sync message should be where expected");
+
+                        t.deepEqual(withoutSync.length, 4, "There should be 4 invite messages");
+
+                        t.end();
+                    }));
+
+                    lives.forEach(
+                        (msg, index) => {
+                            const playerKey = ssbKeys.loadOrCreateSync(path.join(testDbDir, 'live_invite_messages_key' + index));
+                            keys.push(`@${playerKey.public}`)
+            
+                            s = validate.appendNew(s, null, playerKey, msg.value.content, time + index + 1);
+                        }
+                    );
+
+                    pull(
+                        pull.values(s.queue),
+                        pull.asyncMap((kvt, cb) => {
+                            db.addOOO(kvt.value, cb)
+                        }),
+                        pull.drain(()=>{})
+                    )
+
+                })
+            })
+        )
+
+
+    });
 
 }, 2000);
 
