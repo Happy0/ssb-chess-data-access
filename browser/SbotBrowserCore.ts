@@ -124,30 +124,17 @@ export class SbotBrowserCore implements Accesser {
         let {and, type, where, live, descending, gte, toPullStream} = this.sbot.dbOperators;
 
         const makeStream = (reverse: boolean, isLive: boolean) => {
-            const typeStreamDescending = this.sbot.db.query(
+            return this.sbot.db.query(
                 where(
                     and(
                         type('chess_game_end'),
                         gte(since || 0, 'timestamp'),
                     )
                 ),
-                live({old: !isLive, live:isLive}),
-                descending(),
+                isLive ? live() : null,
+                reverse ? descending() : null,
                 toPullStream()
             )
-    
-            const typeScreamAscending =  this.sbot.db.query(
-                where(
-                    and(
-                        type('chess_game_end'),
-                        gte(since || 0, 'timestamp'),
-                    )
-                ),
-                live({old: !isLive, live:isLive}),
-                toPullStream()
-            )
-        
-            return reverse ? typeStreamDescending : typeScreamAscending;
         }
 
         const oldStream = makeStream(reverse, false);

@@ -336,7 +336,7 @@ setTimeout(() => {
         const time = Date.now();
 
         const exampleStatuses = require('./data/example_statuses.json');
-        const firstTen = exampleStatuses.splice(0,10);
+        const firstTen = exampleStatuses.slice(0,10);
 
         let s = validate.initial();
 
@@ -389,8 +389,8 @@ setTimeout(() => {
         let s = validate.initial();
         const keys = [];
 
-        const nonLive = exampleStatuses.splice(0,3);
-        const lives = exampleStatuses.splice(3,10);
+        const nonLive = exampleStatuses.slice(0,3);
+        const lives = exampleStatuses.slice(3,10);
 
         nonLive.forEach(
             (msg, index) => {
@@ -451,9 +451,11 @@ setTimeout(() => {
 
         const db = SSB.db;
         const time = Date.now();
+        console.log("Time is: " + time);
 
         const exampleStatuses = require('./data/example_statuses.json');
-        const firstTen = exampleStatuses.splice(0,10);
+        const firstTen = exampleStatuses.slice(0,10);
+       // console.log(firstTen.map(e => e.value.content))
 
         let s = validate.initial();
 
@@ -483,11 +485,18 @@ setTimeout(() => {
                     const source = dataAccess.chessInviteAcceptMessages(false);
 
                     // I haven't found a way to delete DB and start again so doing this for now
-                    const fromTestOnly = pull.filter(msg => keys.indexOf(msg.value.author) !== -1);
+                    const fromTestOnly = pull.filter(msg => {
+       
+
+                        const result = keys.indexOf(msg.value.author) !== -1;
+                  
+
+                        return result;
+                    });
 
                     pull(source, fromTestOnly, pull.collect(
                         (err, results) => {
-                            console.log(err)
+                        
 
                             t.equals(results.length, 2, "there should be 2 invite accepts");
 
