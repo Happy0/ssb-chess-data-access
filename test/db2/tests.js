@@ -447,5 +447,57 @@ setTimeout(() => {
 
     });
 
+    test("chessInviteAcceptMessages (non-live)", (t) => {
+
+        const db = SSB.db;
+        const time = Date.now();
+
+        const exampleStatuses = require('./data/example_statuses.json');
+        const firstTen = exampleStatuses.splice(0,10);
+
+        let s = validate.initial();
+
+        const keys = [];
+
+        firstTen.forEach(
+            (msg, index) => {
+                const playerKey = ssbKeys.loadOrCreateSync(path.join(testDbDir, 'invite_accept_messages_key' + index));
+                keys.push(`@${playerKey.public}`)
+
+                s = validate.appendNew(s, null, playerKey, msg.value.content, time + index + 1);
+            }
+        );
+
+        pull(
+            pull.values(s.queue),
+            pull.asyncMap((kvt, cb) => {
+                db.addOOO(kvt.value, cb)
+            }),
+            pull.collect((err, results)=> {
+              //  console.log(results.map(e => e.value.content))
+                if (err) {
+                    t.error(err);
+                }
+
+                db.onDrain(() => {
+                    const source = dataAccess.chessInviteAcceptMessages(false);
+
+                    // I haven't found a way to delete DB and start again so doing this for now
+                    const fromTestOnly = pull.filter(msg => keys.indexOf(msg.value.author) !== -1);
+
+                    pull(source, fromTestOnly, pull.collect(
+                        (err, results) => {
+                            console.log(err)
+
+                            t.equals(results.length, 2, "there should be 2 invite accepts");
+
+                            t.end();
+                        }
+                    ));
+                })
+            })
+        )
+    });
+
 }, 2000);
 
