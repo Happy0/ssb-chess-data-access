@@ -1,10 +1,9 @@
-import {Accesser} from './accesser'
+import {Accesser} from '../accesser'
 import pull from 'pull-stream'
 import Scan from 'pull-scan'
 import cat from 'pull-cat'
 import AboutOOO from 'ssb-ooo-about'
 import {chessMessagesForOtherPlayersGames, chessMessagesForPlayerGames} from './chessMessagesForPlayers'
-
 
 /**
  * A typical(ish) ssb-server, as in the one ran by Patchwork for example.
@@ -45,10 +44,10 @@ export class SbotClassic implements Accesser {
         })
     }
 
-    publishPublicChessMessage(payload: any, cb: (err: any) => any): void {
+    publishPublicChessMessage(payload: any, cb: (err: any, result: any) => any): void {
         return this.sbot.publish(payload, cb);
     }
-    publishPrivateChessMessage(payload: any, participants: String[], cb: (err: any) => any): void {
+    publishPrivateChessMessage(payload: any, participants: String[], cb: (err: any, result: any) => any): void {
         return this.sbot.private.publish(payload, participants, cb);
     }
     getInviteMessage(gameId: String, cb: (err: any, result: any) => any): void {
@@ -56,7 +55,11 @@ export class SbotClassic implements Accesser {
     }
     allGameMessages(gameId: String, live: Boolean) {
 
-        const originalMessage = pull(pull.once(gameId), pull.asyncMap(this.sbot.get))
+        const originalMessage = pull(pull.once(gameId), pull.asyncMap(this.sbot.get), pull.map(msg => {
+            msg.value = {};
+            msg.value.content = msg.content;
+            return msg;
+        }));
 
         const backlinks = pull(
             this.sbot.backlinks.read({
@@ -66,7 +69,7 @@ export class SbotClassic implements Accesser {
             })
         );
 
-        return pull(cat([originalMessage, backlinks]));
+        return cat([originalMessage, backlinks]);
     }
 
     chessInviteMessages(live: boolean) {
@@ -79,7 +82,9 @@ export class SbotClassic implements Accesser {
         return pull(this.sbot.messagesByType({type: "chess_game_end", live: live, reverse: reverse, since: since}))
     }
     getLatestAboutMsgIds(userId: string, cb: (err: string, result: String[]) => void) {
-        const about = AboutOOO(this.sbot, {})
+        const getAboutStream = this.getAboutStream.bind(this);
+        const about = AboutOOO(getAboutStream);
+        
         about.async.getLatestMsgIds(userId, cb)
     }
     
@@ -88,7 +93,7 @@ export class SbotClassic implements Accesser {
             source: userId,
             rel: 'contact',
             values: true,
-            live: true
+            live: live
         });
 
         const state = {
@@ -213,4 +218,13 @@ export class SbotClassic implements Accesser {
           );
     }
 
+    getAboutStream(id) {
+        return this.sbot.links({
+          dest: id,
+          rel: "about",
+          reverse: true,
+          values: true,
+          source: id
+        })
+    }
 }

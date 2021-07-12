@@ -1,3 +1,4 @@
-import {SbotClassic} from './SbotClassic'
+import {SbotClassic} from './classic/SbotClassic'
+import {SbotBrowserCore} from './browser/SbotBrowserCore'
 
-export { SbotClassic }
+export { SbotClassic, SbotBrowserCore }

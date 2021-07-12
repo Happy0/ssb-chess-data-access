@@ -8,18 +8,18 @@ export interface Accesser {
     /*
     * Returns the user's public key 
     */
-    whoAmI(cb: (err: any, result: string) => void): void;
+    whoAmI(cb: (err: any, result: any) => void): void;
 
     /*
     * Publishes a message publicly. Message should be part of the ssb-chess protocol.
     */
-    publishPublicChessMessage(payload: any, cb: (err: any) => any): void
+    publishPublicChessMessage(payload: any, cb: (err: any, result: any) => any): void
 
     /*
     * Publishes a message privately to the given list of participants. 
     * Message should be part of the ssb-chess protocol.
     */
-    publishPrivateChessMessage(payload: any, participants: Array<String>, cb: (err: any) => any): void
+    publishPrivateChessMessage(payload: any, participants: Array<String>, cb: (err: any, result: any) => any): void
 
     /**
      * Gets the original chess game invite message by game ID
