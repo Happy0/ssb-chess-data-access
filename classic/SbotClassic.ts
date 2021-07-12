@@ -93,7 +93,7 @@ export class SbotClassic implements Accesser {
             source: userId,
             rel: 'contact',
             values: true,
-            live: true
+            live: live
         });
 
         const state = {

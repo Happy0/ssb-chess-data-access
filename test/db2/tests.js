@@ -807,7 +807,26 @@ setTimeout(() => {
                 })
             })
         )
-    })
+    });
+
+    test("follows", (t) => {
+        const rodge = "@RJ09Kfs3neEZPrbpbWVDxkN92x9moe3aPusOMOc4S2I=.ed25519";
+
+        const followMessage = {
+            "type": "contact",
+            "following": true,
+            "contact": rodge
+        }
+
+        SSB.net.publish(followMessage, (err, result) => {
+
+            pull(dataAccess.follows(SSB.net.id), pull.take(1), pull.drain(e => {
+                t.deepEqual(e, [rodge])
+                t.end();
+            }));
+        });
+
+    });
 
 
 }, 2000);
