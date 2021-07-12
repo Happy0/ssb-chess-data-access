@@ -128,17 +128,19 @@ export class SbotBrowserCore implements Accesser {
                 where(
                     and(
                         type('chess_game_end'),
-                        gte(since || 0, 'timestamp'),
+
+                        // TODO: find out if there's a bug when using 'live' and 'gte' together...
+                        !isLive ? gte(since || 0, 'timestamp') : null
                     )
                 ),
                 isLive ? live() : null,
-                reverse ? descending() : null,
+                (reverse && !isLive) ? descending() : null,
                 toPullStream()
             )
         }
 
         const oldStream = makeStream(reverse, false);
-        const newStream = makeStream(reverse, false);
+        const newStream = makeStream(reverse, true);
 
         if (!keepLive) {
             return oldStream;
@@ -242,7 +244,10 @@ export class SbotBrowserCore implements Accesser {
 
         // Don't repeat any we already seen in the old stream...
         const news = pull(livePushable,
-            pull.filter(msg => msg.timestamp > timestamp || (msg.timestamp === timestamp && msg.key !== key)
+            pull.filter(msg => {
+                const result = msg.timestamp > timestamp || (msg.timestamp === timestamp && msg.key !== key);
+                return result;
+            }
             )
         );
 
