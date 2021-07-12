@@ -855,7 +855,23 @@ setTimeout(() => {
     });
 
     test("getLatestAboutMsgIds", (t) => {
-        t.end();
+        const aboutSelf = {
+            "type": "about",
+            "about": SSB.net.id,
+            "name": "Fulano"
+          };
+
+          SSB.net.publish(aboutSelf, (err, publishResult) => {
+
+            SSB.db.onDrain('aboutSelf', () => {
+                dataAccess.getLatestAboutMsgIds(SSB.net.id, (err, result) => {
+                    t.error(err);
+    
+                    t.deepEquals(result, [publishResult.key]);
+                    t.end();
+                })
+              });
+            })
     })
 
     test("aboutSelfChangesUserIds", (t) => {
@@ -866,7 +882,7 @@ setTimeout(() => {
         t.end();
     });
 
-    test("chessMessagesForPlayerGames (since now, live)", (t) => {
+    test("chessMessagesForOtherPlayersGames (since now, live)", (t) => {
         t.end();
     });
 

@@ -255,13 +255,17 @@ export class SbotBrowserCore implements Accesser {
     }
 
     getAboutStream(id) {
-        let {type, where, descending, toPullStream} = this.sbot.dbOperators;
+        let {type, where, author, and, descending, toPullStream} = this.sbot.dbOperators;
 
-        return this.sbot.query(
+        return this.sbot.db.query(
             where(
-                type("about")
+                and(
+                    type("about"),
+                    author(id)
+                )
             ),
-            descending()
+            descending(),
+            toPullStream()
         )
     }
 
