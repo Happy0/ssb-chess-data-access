@@ -274,34 +274,19 @@ export class SbotBrowserCore implements Accesser {
         const liveStream = (opts && (opts.live !== undefined && opts.live !== null)) ? opts.live : true;
 
         const getSourceStream = (livesOnly: boolean) => {
-            if (reverse) {
-                return this.sbot.db.query(
-                    where(
-                        and(
-                            or(
-                                messageTypes.map(typeValue => type(typeValue))
-                            ),
-                            gte(since, 'timestamp')
-                        )
-                    ),
-                    livesOnly ?  live() : null,
-                    descending(),
-                    toPullStream()
-                )
-            } else {
-                return this.sbot.db.query(
-                    where(
-                        and(
-                            or(
-                                messageTypes.map(typeValue => type(typeValue))
-                            ),
-                            gte(since, 'timestamp')
-                        )
-                    ),
-                    livesOnly ?  live() : null,
-                    toPullStream()
-                )
-            }
+            return this.sbot.db.query(
+                where(
+                    and(
+                        or(
+                            messageTypes.map(typeValue => type(typeValue))
+                        ),
+                        !livesOnly ? gte(since, 'timestamp') : null
+                    )
+                ),
+                livesOnly ?  live() : null,
+                reverse && !livesOnly ? descending() : null,
+                toPullStream()
+            )
         }
 
         const isPlayerInInvite = (msg, id) => {
