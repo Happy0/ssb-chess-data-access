@@ -55,7 +55,6 @@ setTimeout(() => {
             t.equals(err, null, "There should be no error on publishing");
             
             const myIdent = `@${keys.public}`
-            console.log("me: " + myIdent)
             const messagesSource = dataAccess.chessMessagesForPlayerGames(myIdent, {live: false});
     
             pull(messagesSource, pull.collect((err, results) => {
@@ -414,7 +413,6 @@ setTimeout(() => {
                     const fromTestOnly = pull.filter(msg => msg.sync || keys.indexOf(msg.value.author) !== -1); 
 
                     pull(source, fromTestOnly, pull.take(5), pull.collect((err, results) => {
-                        console.log(results)
                         const withoutSync = results.filter(e => !e.sync);
 
                         t.assert(results.find(e => e.sync) != null); 
@@ -454,7 +452,6 @@ setTimeout(() => {
 
         const db = SSB.db;
         const time = Date.now();
-        console.log("Time is: " + time);
 
         const exampleStatuses = require('./data/example_statuses.json');
         const firstTen = exampleStatuses.slice(0,10);
@@ -540,7 +537,6 @@ setTimeout(() => {
                     const fromTestOnly = pull.filter(msg => msg.sync || keys.indexOf(msg.value.author) !== -1); 
 
                     pull(source, fromTestOnly, pull.take(3), pull.collect((err, results) => {
-                        console.log(results)
                         const withoutSync = results.filter(e => !e.sync);
 
                         t.assert(results.find(e => e.sync) != null); 
@@ -578,7 +574,6 @@ setTimeout(() => {
 
         const db = SSB.db;
         const time = Date.now();
-        console.log("Time is: " + time);
 
         const exampleStatuses = require('./data/example_statuses.json');
         const firstTwenty = exampleStatuses.slice(0,20);
@@ -635,7 +630,6 @@ setTimeout(() => {
     test("chessEndMessages (non-live, reversed)", (t) => {
         const db = SSB.db;
         const time = Date.now();
-        console.log("Time is: " + time);
 
         const exampleStatuses = require('./data/example_statuses.json');
         const firstTwenty = exampleStatuses.slice(0,20);
@@ -701,7 +695,6 @@ setTimeout(() => {
 
         nonLive.forEach(
             (msg, index) => {
-                console.log(index)
                 const playerKey = ssbKeys.loadOrCreateSync(path.join(testDbDir, 'live_game_ends_messages_key' + index));
                 keys.push(`@${playerKey.public}`)
 
@@ -825,8 +818,33 @@ setTimeout(() => {
                 t.end();
             }));
         });
-
     });
+
+    test("getPlayerDisplayName", (t) => {
+        t.end();
+    });
+
+    test("getLatestAboutMsgIds", (t) => {
+        t.end();
+    })
+
+    test("aboutSelfChangesUserIds", (t) => {
+        t.end();
+    });
+
+    test("chessMessagesForPlayerGames (since now, live)", (t) => {
+        t.end();
+    });
+
+    test("chessMessagesForPlayerGames (since now, live)", (t) => {
+        t.end();
+    });
+
+    // Not needed for now
+    test("followedBy", (t) => {
+        t.end();
+    })
+
 
 
 }, 2000);
