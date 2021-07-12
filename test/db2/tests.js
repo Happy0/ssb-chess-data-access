@@ -21,7 +21,20 @@ const config = {
     keys: keys
 }
 
-BrowserCore.init(testDbDir, config)
+function extraModules(secretStack) {
+    return secretStack.use({
+      init: function (sbot, config) {
+        sbot.db.registerIndex(require('ssb-db2/indexes/full-mentions'))
+      }
+    })
+    .use({
+      init: function (sbot, config) {
+        sbot.db.registerIndex(require('ssb-db2/indexes/about-self'))
+      }
+    })
+  }
+
+BrowserCore.init(testDbDir, config, extraModules)
 
 // For some reason the ssb modules can take a little while to load
 setTimeout(() => {
@@ -821,7 +834,24 @@ setTimeout(() => {
     });
 
     test("getPlayerDisplayName", (t) => {
-        t.end();
+        const aboutSelf = {
+            "type": "about",
+            "about": SSB.net.id,
+            "name": "Fulano"
+          };
+
+          SSB.net.publish(aboutSelf, (err, result) => {
+
+            SSB.db.onDrain('aboutSelf', () => {
+                dataAccess.getPlayerDisplayName(SSB.net.id, (err, result) => {
+                    t.error(err);
+    
+                    t.equals(result, "Fulano");
+    
+                    t.end();
+                })
+              });
+            })
     });
 
     test("getLatestAboutMsgIds", (t) => {
@@ -840,12 +870,10 @@ setTimeout(() => {
         t.end();
     });
 
-    // Not needed for now
+    // Not needed for now and function is bugged, will fix later
     test("followedBy", (t) => {
         t.end();
     })
-
-
 
 }, 2000);
 
