@@ -499,10 +499,7 @@ setTimeout(() => {
 
                     pull(source, fromTestOnly, pull.collect(
                         (err, results) => {
-                        
-
                             t.equals(results.length, 2, "there should be 2 invite accepts");
-
                             t.end();
                         }
                     ));
@@ -575,7 +572,123 @@ setTimeout(() => {
                 })
             })
         )
-    })
+    });
+
+    test('chessEndMessages (non-live, non-reversed)', (t) => {
+
+        const db = SSB.db;
+        const time = Date.now();
+        console.log("Time is: " + time);
+
+        const exampleStatuses = require('./data/example_statuses.json');
+        const firstTwenty = exampleStatuses.slice(0,20);
+
+        let s = validate.initial();
+
+        const keys = [];
+
+        firstTwenty.forEach(
+            (msg, index) => {
+                const playerKey = ssbKeys.loadOrCreateSync(path.join(testDbDir, 'game_end_messages_key' + index));
+                keys.push(`@${playerKey.public}`)
+
+                s = validate.appendNew(s, null, playerKey, msg.value.content, time + index + 1);
+            }
+        );
+
+        pull(
+            pull.values(s.queue),
+            pull.asyncMap((kvt, cb) => {
+                db.addOOO(kvt.value, cb)
+            }),
+            pull.collect((err, results)=> {
+              //  console.log(results.map(e => e.value.content))
+                if (err) {
+                    t.error(err);
+                }
+
+                db.onDrain(() => {
+                    const source = dataAccess.chessEndMessages(false, false);
+
+                    // I haven't found a way to delete DB and start again so doing this for now
+                    const fromTestOnly = pull.filter(msg => {
+                        const result = keys.indexOf(msg.value.author) !== -1;
+                        return result;
+                    });
+
+                    pull(source, fromTestOnly, pull.collect(
+                        (err, results) => {
+                            t.equals(results.length, 7, "there should be 7 game end messages");
+                            const messageBodies = results.map(msg => msg.value.content);
+                            const expecteds = firstTwenty.map(msg => msg.value.content).filter(msg => msg.type === "chess_game_end");
+
+                            t.deepEqual(messageBodies, expecteds)
+
+                            t.end();
+                        }
+                    ));
+                })
+            })
+        )
+    });
+
+    test("chessEndMessages (non-live, reversed)", (t) => {
+        const db = SSB.db;
+        const time = Date.now();
+        console.log("Time is: " + time);
+
+        const exampleStatuses = require('./data/example_statuses.json');
+        const firstTwenty = exampleStatuses.slice(0,20);
+
+        let s = validate.initial();
+
+        const keys = [];
+
+        firstTwenty.forEach(
+            (msg, index) => {
+                const playerKey = ssbKeys.loadOrCreateSync(path.join(testDbDir, 'game_end_messages_key' + index));
+                keys.push(`@${playerKey.public}`)
+
+                s = validate.appendNew(s, null, playerKey, msg.value.content, time + index + 1);
+            }
+        );
+
+        pull(
+            pull.values(s.queue),
+            pull.asyncMap((kvt, cb) => {
+                db.addOOO(kvt.value, cb)
+            }),
+            pull.collect((err, results)=> {
+              //  console.log(results.map(e => e.value.content))
+                if (err) {
+                    t.error(err);
+                }
+
+                db.onDrain(() => {
+                    const source = dataAccess.chessEndMessages(false, true);
+
+                    // I haven't found a way to delete DB and start again so doing this for now
+                    const fromTestOnly = pull.filter(msg => {
+                        const result = keys.indexOf(msg.value.author) !== -1;
+                        return result;
+                    });
+
+                    pull(source, fromTestOnly, pull.collect(
+                        (err, results) => {
+                            t.equals(results.length, 7, "there should be 7 game end messages");
+                            const messageBodies = results.map(msg => msg.value.content);
+                            const expecteds = firstTwenty.map(msg => msg.value.content).filter(msg => msg.type === "chess_game_end");
+
+                            t.deepEqual(messageBodies, expecteds.reverse())
+
+                            t.end();
+                        }
+                    ));
+                })
+            })
+        )
+    });
+
 
 }, 2000);
 
