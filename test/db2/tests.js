@@ -874,6 +874,7 @@ setTimeout(() => {
             })
     })
 
+    // Implicitly tested by getLatestAboutMsgIds... Will add another test here later
     test("aboutSelfChangesUserIds", (t) => {
         t.end();
     });
