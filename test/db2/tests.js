@@ -757,6 +757,58 @@ setTimeout(() => {
         )
     });
 
+    test(" chessEndMessages (after timestamp) ", (t) => {
+        const db = SSB.db;
+        const time = Date.now();
+
+        const exampleStatuses = require('./data/example_statuses.json');
+        const firstTwenty = exampleStatuses.slice(0,20);
+
+        let s = validate.initial();
+
+        const keys = [];
+
+        firstTwenty.forEach(
+            (msg, index) => {
+                const playerKey = ssbKeys.loadOrCreateSync(path.join(testDbDir, 'game_end_messages_key' + index));
+                keys.push(`@${playerKey.public}`)
+
+                s = validate.appendNew(s, null, playerKey, msg.value.content, time + index + 1);
+            }
+        );
+
+        pull(
+            pull.values(s.queue),
+            pull.asyncMap((kvt, cb) => {
+                db.addOOO(kvt.value, cb)
+            }),
+            pull.collect((err, results)=> {
+              //  console.log(results.map(e => e.value.content))
+                if (err) {
+                    t.error(err);
+                }
+
+                db.onDrain(() => {
+                    const source = dataAccess.chessEndMessages(false, true, time + 9);
+
+                    // I haven't found a way to delete DB and start again so doing this for now
+                    const fromTestOnly = pull.filter(msg => {
+                        const result = keys.indexOf(msg.value.author) !== -1;
+                        return result;
+                    });
+
+                    pull(source, fromTestOnly, pull.collect(
+                        (err, results) => {
+                            t.equals(results.length, 5, "there should be 5 game end messages");
+
+                            t.end();
+                        }
+                    ));
+                })
+            })
+        )
+    })
+
 
 }, 2000);
 
