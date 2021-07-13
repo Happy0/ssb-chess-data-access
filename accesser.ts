@@ -28,8 +28,11 @@ export interface Accesser {
      */
     getInviteMessage(game: String, cb: (err: any, result: any) => any): void
 
-    /*
+    /**
     * Returns a pull stream source of all the ssb-chess messages for the given game ID
+    * If this is a live stream, produces a {'sync': true} message when the 'old' 
+    * stream has finished and subsequently emitted messages will be messages which have newly been
+    * replicated.
     * 
     * @param messageId the ID of the game
     * @param live whether this pull-stream terminates when the currently stored messages have been completely,
@@ -70,6 +73,10 @@ export interface Accesser {
     /**
      * A pull-stream source of all messages of type 'chess_invite'
      * 
+     * If this is a live stream, produces a {'sync': true} message when the 'old' 
+     * stream has finished and subsequently emitted messages will be messages which have newly been
+     * replicated.
+     * 
      * @param live whether the stream should continue and emit newly arriving messages
      */
     chessInviteMessages(live: boolean): any
@@ -77,12 +84,20 @@ export interface Accesser {
     /**
      * A pull-stream source of all messages of type 'chess_invite_accept'
      * 
+     * If this is a live stream, produces a {'sync': true} message when the 'old' 
+     * stream has finished and subsequently emitted messages will be messages which have newly been
+     * replicated.
+     * 
      * @param live whether the stream should continue and emit newly arriving messages
      */
     chessInviteAcceptMessages(live: boolean): any
 
     /**
      * A pull-stream source of all messages of type 'chess_game_end'
+     * 
+     * If this is a live stream, produces a {'sync': true} message when the 'old' 
+     * stream has finished and subsequently emitted messages will be messages which have newly been
+     * replicated.
      *
      * @param live whether the stream should continue and emit newly arriving messages
      */

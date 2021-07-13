@@ -338,6 +338,7 @@ export class SbotBrowserCore implements Accesser {
 
         return pull(
             sourceStream,
+            pull.filter(msg => !msg.sync),
             pull.asyncMap(messageWithPlayerCheck),
             pull.filter(msg => playerShouldBeIn ? msg.check : !msg.check),
             pull.map(msg => msg.msg)
