@@ -196,15 +196,14 @@ export class SbotBrowserCore implements Accesser {
         }
     }
     getLatestAboutMsgIds(userId: string, cb: (err: string, result: String[]) => void) {
-        const getAboutStream = this.getAboutStream.bind(this);
-        const about = AboutOOO(getAboutStream);
+        const about = AboutOOO(this.getAboutStream.bind(this));
 
         about.async.getLatestMsgIds(userId, cb);
     }
     aboutSelfChangesUserIds(since: number) {
         let {and, type, where, live, gte, toPullStream} = this.sbot.dbOperators;
 
-        return pull(this.sbot.query(
+        return pull(this.sbot.db.query(
             where(
                 and(
                     type("about"),
