@@ -277,18 +277,14 @@ export class SbotBrowserCore implements Accesser {
         const liveStream = (opts && (opts.live !== undefined && opts.live !== null)) ? opts.live : true;
 
         const getSourceStream = (livesOnly: boolean) => {
-            return this.sbot.db.query(
-                where(
-                    and(
-                        or(
-                            messageTypes.map(typeValue => type(typeValue))
-                        ),
-                        !livesOnly ? gte(since, 'timestamp') : null
-                    )
-                ),
-                livesOnly ?  live() : null,
-                reverse && !livesOnly ? descending() : null,
-                toPullStream()
+            // todo: make this more readable
+            const source = livesOnly 
+                ? this.sbot.db.query(live(), toPullStream()) 
+                : this.sbot.db.query(where(gte(since, 'timestamp')), reverse ? descending() : null, toPullStream());
+
+            return pull(
+                source,
+                pull.filter(msg => messageTypes.indexOf(msg.value.content.type) !== -1)
             )
         }
 
